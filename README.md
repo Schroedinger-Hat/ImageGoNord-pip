@@ -1,7 +1,7 @@
 # ImageGoNord - RGB image to Nordtheme palette
 
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/image-go-nord)
-![PyPI](https://img.shields.io/pypi/v/image-go-nord)
+[![PyPI](https://img.shields.io/pypi/v/image-go-nord)](https://pypi.org/project/image-go-nord/)
 [![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/Schrodinger-Hat/ImageGoNord-pip/blob/master/LICENSE)
 [![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/image-go-nord)
 
