@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import base64
+import os
 from io import BytesIO
 
 from PIL import Image, ImageFilter
@@ -119,7 +120,9 @@ class GoNord(object):
         Save a Pillow image to file
     """
 
-    PALETTE_LOOKUP_PATH = "ImageGoNord/palettes/Nord/"
+    dirname = os.path.dirname(__file__)
+
+    PALETTE_LOOKUP_PATH = os.path.join(dirname, 'palettes/Nord/')
     USE_GAUSSIAN_BLUR   = False
     USE_AVG_COLOR       = False
     AVG_BOX_DATA        = {"w": -2, "h": 3}
