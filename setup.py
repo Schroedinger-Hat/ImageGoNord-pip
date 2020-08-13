@@ -12,7 +12,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Schrodinger-Hat/ImageGoNord-pip",
     download_url = 'https://github.com/Schrodinger-Hat/ImageGoNord-pip/releases',
-    keywords = ['nordtheme', 'pillow', 'image', 'conversion', 'rgb'], 
+    keywords = ['nordtheme', 'pillow', 'image', 'conversion', 'rgb', 'color-scheme', 'color-palette'], 
     author="Schrodinger Hat",
     author_email="schrodinger.hat.show@gmail.com",
     license="MIT",

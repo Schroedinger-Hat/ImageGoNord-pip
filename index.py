@@ -31,4 +31,5 @@ go_nord.convert_image(resized_img, palettedata, save_path='images/test.resized.j
 
 palettedata = go_nord.get_palette_data()
 image = go_nord.open_image("images/test.jpg")
-go_nord.quantize_image(image, save_path='images/test.quantize.jpg')
+quantize_image = go_nord.quantize_image(image)
+# go_nord.image_to_base64(image, 'jpeg')

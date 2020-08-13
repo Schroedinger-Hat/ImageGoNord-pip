@@ -141,3 +141,7 @@ cython_debug/
 .vim/
 *.sw*
 
+# Testing images
+images/*resized*
+images/*avg*
+images/*processed*
