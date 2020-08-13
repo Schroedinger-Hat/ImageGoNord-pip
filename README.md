@@ -1,4 +1,10 @@
 # ImageGoNord - RGB image to Nordtheme palette
+
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/image-go-nord)
+![PyPI](https://img.shields.io/pypi/v/image-go-nord)
+[![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/Schrodinger-Hat/ImageGoNord-pip/blob/master/LICENSE)
+[![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/image-go-nord)
+
 A tool that can convert your rgb images to nordtheme palette.
 
 This repository is a CLI utility, written in python, that can convert any sort of image into a [nordtheme](https://github.com/arcticicestudio/nord) palette image.
