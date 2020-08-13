@@ -145,3 +145,4 @@ cython_debug/
 images/*resized*
 images/*avg*
 images/*processed*
+images/*quantize*
