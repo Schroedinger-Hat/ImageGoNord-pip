@@ -120,9 +120,12 @@ class GoNord(object):
         Save a Pillow image to file
     """
 
-    dirname = os.path.dirname(__file__)
+    DEFAULT_PALETTE_PATH = '../palettes/Nord/'
 
-    PALETTE_LOOKUP_PATH = os.path.join(dirname, 'palettes/Nord/')
+    if (os.path.exists('../palettes/Nord/') == False):
+        DEFAULT_PALETTE_PATH = 'ImageGoNord/palettes/Nord/'
+
+    PALETTE_LOOKUP_PATH = DEFAULT_PALETTE_PATH
     USE_GAUSSIAN_BLUR   = False
     USE_AVG_COLOR       = False
     AVG_BOX_DATA        = {"w": -2, "h": 3}
