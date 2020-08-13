@@ -6,7 +6,7 @@ README = (ROOT / "README.md").read_text()
 
 setup(
     name="image-go-nord",
-    version="0.0.3",
+    version="0.0.4",
     description="A tool for converting RGB image to Nordtheme palette",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -17,7 +17,7 @@ setup(
     author_email="schrodinger.hat.show@gmail.com",
     license="MIT",
     classifiers=[
-        'Development Status :: 3 - Alpha',      # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
+        'Development Status :: 4 - Beta',      # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
         "License :: OSI Approved :: MIT License",
