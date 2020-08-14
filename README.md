@@ -7,8 +7,17 @@
 
 A tool that can convert your rgb images to nordtheme palette.
 
-This repository is a CLI utility, written in python, that can convert any sort of image into a [nordtheme](https://github.com/arcticicestudio/nord) palette image.
-<br>We are planning to make also an API so it can be more user friendly.
+This repository is a python package that can convert any sort of image into a [nordtheme](https://github.com/arcticicestudio/nord) palette image.
+
+You can find a demo on [the website](https://ign.schrodinger-hat.it) for testing out the package.
+
+We build also a little API hosted on Heroku to give to anyone the change to test it out by theirself. You can find the documentation on the website too.
+
+The main repository of this whole project is [ImageGoNord](https://github.com/Schrodinger-Hat/ImageGoNord).
+
+### Documentation
+
+You can find the [documentation into this repository](https://github.com/Schrodinger-Hat/ImageGoNord-pip/tree/master/docs) and also on the website.
 
 <!--
 @TODO
@@ -19,7 +28,6 @@ This repository is a CLI utility, written in python, that can convert any sort o
 - Note and briefly describe any key concepts (technical, philosophical, or both) important to the user’s understanding.
 - Link to any supplementary blog posts or project main pages.
 - Note its development status.
-- Include badges.
 - If possible, include screenshots and demo videos.
 -->
 
@@ -34,6 +42,25 @@ Our goal is to make a shortcut to convert anything into this theme, by starting 
 
 We checked the commnunity and we did not find anything similar or any project that can accomplish this task. So, here we are.
 
+### What you can do with this package
+
+You can convert any image into the nord palette (or others). Here are some examples:
+
+**Original**
+[![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test.jpg)
+
+
+**Processed with avg algorithm**
+[![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-average.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-average.jpg)
+
+
+**Original**
+[![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)
+
+
+**Processed with avg algorithm**
+[![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)
+
 ### Core Technical Concepts
 
 We are using the PIL because it is the most simple library and it is very useful when you need to manipolate some images.
@@ -43,14 +70,14 @@ Our goal is also to make this project open source and maintainable by the commun
 *We believe in the open source community.*
 
 ### Getting Started
-Include any essential instructions for:
-- Getting it
-- Installing It
-- Configuring It
-- Running it
 
-### Testing
-- Tests **TODO**
+Getting it from PIP
+
+```
+pip install image-go-nord
+```
+
+Then you can use [some example](https://github.com/Schrodinger-Hat/ImageGoNord-pip/tree/master/docs/example) to getting started properly!
 
 ### Contributing
 - Follow the contributor guidelines
@@ -58,11 +85,9 @@ Include any essential instructions for:
 - Format for commit messages
 
 ### TODO
-- Portable environemnt
 - Testing
 - Improvements on image quality and supporting any image format
 - Make contributing guidelines
-- API / UI
 
 # Authors
 
@@ -76,4 +101,4 @@ Include any essential instructions for:
 
 ### License
 
-[MIT license](https://github.com/Schrodinger-Hat/ImageGoNord/blob/master/LICENSE)
+[MIT license](https://github.com/Schrodinger-Hat/ImageGoNord-pip/blob/master/LICENSE)
