@@ -54,12 +54,17 @@ You can convert any image into the nord palette (or others). Here are some examp
 [![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-average.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-average.jpg)
 
 
+<div style="width: 100%">
+<div style="width: 50%">
 **Original**
 [![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)
+</div>
 
-
+<div style="width: 50%">
 **Processed with avg algorithm**
 [![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)
+</div>
+</div>
 
 ### Core Technical Concepts
 
