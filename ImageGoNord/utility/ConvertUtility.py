@@ -62,12 +62,22 @@ class ConvertUtility:
           pass
 
     size = len(average_sum)
+    if (size <= 0):
+      size = 1
+
     r = 0
     g = 0
     b = 0
+    a = 255
     for x in average_sum:
       r += x[0]
       g += x[1]
       b += x[2]
+      if (len(x) > 3):
+        a += x[3]
 
-    return (r/size, g/size, b/size)
+    avg_color = (int(r/size), int(g/size), int(b/size))
+    if (a != 255):
+      avg_color = avg_color + (int(a/size), )
+
+    return avg_color

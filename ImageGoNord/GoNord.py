@@ -125,10 +125,11 @@ class GoNord(object):
     if (os.path.exists('../palettes/Nord/') == False):
         DEFAULT_PALETTE_PATH = 'ImageGoNord/palettes/Nord/'
 
-    PALETTE_LOOKUP_PATH = DEFAULT_PALETTE_PATH
-    USE_GAUSSIAN_BLUR   = False
-    USE_AVG_COLOR       = False
-    AVG_BOX_DATA        = {"w": -2, "h": 3}
+    PALETTE_LOOKUP_PATH     = DEFAULT_PALETTE_PATH
+    USE_GAUSSIAN_BLUR       = False
+    USE_AVG_COLOR           = False
+    AVG_BOX_DATA            = {"w": -2, "h": 3}
+    TRANSPARENCY_TOLERANCE  = 190
 
     AVAILABLE_PALETTE   = []
     PALETTE_DATA        = {}
@@ -181,6 +182,10 @@ class GoNord(object):
         """Method for adding file to the available palette"""
         self.AVAILABLE_PALETTE.append(file)
         self.get_palette_data()
+
+    def set_transparency_tolerance(self, tolerance):
+        """Method for changing the alpha tolerance"""
+        self.TRANSPARENCY_TOLERANCE = int(tolerance)
 
     def enable_gaussian_blur(self):
         """Enable gaussian blur on the output img"""
@@ -303,7 +308,7 @@ class GoNord(object):
         """
         self.USE_AVG_COLOR = False
 
-    def set_avg_box_data(self, w=-2, h=3):
+    def set_avg_box_data(self, w=-2, h=2):
         """
         Set the dimension of the AVG area box to use
 
@@ -367,18 +372,32 @@ class GoNord(object):
             processed image
         """
         self.get_palette_data()
+        original_image = image.copy()
+        original_pixels = self.load_pixel_image(original_image)
+        original_image.close()
         pixels = self.load_pixel_image(image)
+        is_rgba = (image.mode == 'RGBA')
         for i in range(image.size[0]):
             for j in range(image.size[1]):
                 color_to_check = pixels[i, j]
+
+                if (is_rgba):
+                    if (color_to_check[3] < self.TRANSPARENCY_TOLERANCE):
+                        continue
+
                 if self.USE_AVG_COLOR == True:
                     color_to_check = ConvertUtility.get_avg_color(
-                        pixels=pixels, row=i, col=j, w=self.AVG_BOX_DATA['w'], h=self.AVG_BOX_DATA['h'])
+                        pixels=original_pixels, row=i, col=j, w=self.AVG_BOX_DATA['w'], h=self.AVG_BOX_DATA['h'])
 
                 differences = [[ConvertUtility.color_difference(color_to_check, target_value), target_name]
                                for target_name, target_value in self.PALETTE_DATA.items()]
                 differences.sort()
-                pixels[i, j] = tuple(self.PALETTE_DATA[differences[0][1]])
+
+                colors_list = self.PALETTE_DATA[differences[0][1]]
+                if (is_rgba and len(colors_list) == 3):
+                    colors_list.append(color_to_check[3])
+
+                pixels[i, j] = tuple(colors_list)
 
         if (self.USE_GAUSSIAN_BLUR == True):
             image = image.filter(ImageFilter.GaussianBlur(1))
