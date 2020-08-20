@@ -1,9 +1,8 @@
 from ImageGoNord import NordPaletteFile, GoNord
 
 go_nord = GoNord()
-image = go_nord.open_image("images/test-profile.jpg")
-go_nord.convert_image(image, save_path='images/test.processed.jpg')
-
+"""image = go_nord.open_image("images/test-profile.jpg")
+go_nord.convert_image(image, save_path='images/test.processed.jpg') """
 
 # E.g. Avg algorithm and less colors
 go_nord.enable_avg_algorithm()

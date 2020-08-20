@@ -4,6 +4,10 @@ import base64
 import os
 from io import BytesIO
 
+from math import ceil
+from queue import Queue
+import threading
+
 from PIL import Image, ImageFilter
 
 from ImageGoNord.utility.quantize import quantize_to_palette
@@ -130,6 +134,7 @@ class GoNord(object):
     USE_AVG_COLOR           = False
     AVG_BOX_DATA            = {"w": -2, "h": 3}
     TRANSPARENCY_TOLERANCE  = 190
+    MAX_THREADS             = 10
 
     AVAILABLE_PALETTE   = []
     PALETTE_DATA        = {}
@@ -355,7 +360,43 @@ class GoNord(object):
 
         return quantize_img
 
-    def convert_image(self, image, save_path=''):
+    def converted_loop(self, is_rgba, pixels, original_pixels, maxRow, maxCol, minRow=0, minCol=0):
+        color_checked = {}
+        for row in range(minRow, maxRow, 1):
+            for col in range(minCol, maxCol, 1):
+                try:
+                    color_to_check = pixels[row, col]
+                except Exception:
+                    continue
+
+                if (is_rgba):
+                    if (color_to_check[3] < self.TRANSPARENCY_TOLERANCE):
+                        continue
+                
+                if self.USE_AVG_COLOR == True:
+                    # todo: improve this feature in performance
+                    color_to_check = ConvertUtility.get_avg_color(
+                        pixels=original_pixels, row=row, col=col, w=self.AVG_BOX_DATA['w'], h=self.AVG_BOX_DATA['h'])
+
+                # saving in memory every checked color to improve performance
+                key_color_checked = ','.join(str(e) for e in list(color_to_check))
+                if (key_color_checked in color_checked):
+                    difference = color_checked[key_color_checked]
+                else:
+                    differences = [[ConvertUtility.color_difference(color_to_check, target_value), target_name]
+                                for target_name, target_value in self.PALETTE_DATA.items()]
+                    differences.sort()
+                    difference = differences[0][1]
+
+                color_checked[key_color_checked] = difference
+                colors_list = self.PALETTE_DATA[difference]
+                if (is_rgba and len(colors_list) == 3):
+                    colors_list.append(color_to_check[3])
+
+                pixels[row, col] = tuple(colors_list)
+        return pixels
+
+    def convert_image(self, image, save_path='', parallel_threading=False):
         """
         Process a Pillow image by replacing pixel or by avg algorithm
 
@@ -377,27 +418,20 @@ class GoNord(object):
         original_image.close()
         pixels = self.load_pixel_image(image)
         is_rgba = (image.mode == 'RGBA')
-        for i in range(image.size[0]):
-            for j in range(image.size[1]):
-                color_to_check = pixels[i, j]
+        if (parallel_threading == False):
+            self.converted_loop(is_rgba, pixels, original_pixels, image.size[0], image.size[1])
+        else:
+            step = ceil(image.size[0] / self.MAX_THREADS)
+            threads = []
+            for row in range(step, image.size[0]+step, step):
+                args = (is_rgba, pixels, original_pixels, row, image.size[1], row-step, 0)
+                t = threading.Thread(target=self.converted_loop, args=args)
+                t.daemon = True
+                t.start()
+                threads.append(t)
 
-                if (is_rgba):
-                    if (color_to_check[3] < self.TRANSPARENCY_TOLERANCE):
-                        continue
-
-                if self.USE_AVG_COLOR == True:
-                    color_to_check = ConvertUtility.get_avg_color(
-                        pixels=original_pixels, row=i, col=j, w=self.AVG_BOX_DATA['w'], h=self.AVG_BOX_DATA['h'])
-
-                differences = [[ConvertUtility.color_difference(color_to_check, target_value), target_name]
-                               for target_name, target_value in self.PALETTE_DATA.items()]
-                differences.sort()
-
-                colors_list = self.PALETTE_DATA[differences[0][1]]
-                if (is_rgba and len(colors_list) == 3):
-                    colors_list.append(color_to_check[3])
-
-                pixels[i, j] = tuple(colors_list)
+            for t in threads:
+                t.join(timeout=30)
 
         if (self.USE_GAUSSIAN_BLUR == True):
             image = image.filter(ImageFilter.GaussianBlur(1))
