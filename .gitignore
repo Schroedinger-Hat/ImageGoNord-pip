@@ -146,3 +146,6 @@ images/*resized*
 images/*avg*
 images/*processed*
 images/*quantize*
+
+# pycharm
+.idea/
