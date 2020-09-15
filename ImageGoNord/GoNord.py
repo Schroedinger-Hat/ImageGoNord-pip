@@ -216,7 +216,7 @@ class GoNord(object):
         """
         return Image.open(path)
 
-    def resize_image(self, image, w=0, h=0):
+    def resize_image(self, image, size=(0, 0)):
         """
         Resize an image using Pillow utility
 
@@ -224,23 +224,22 @@ class GoNord(object):
         ----------
         image : pillow image
             The source pillow image
-        w : int
-            New width
-        h : int
-            New height
+
+        :param size:
+            (width, height) of returning image, using half image size if not specified
 
         Returns
         -------
         pillow image
             resized image
         """
-        w_resize = w
-        h_resize = h
-        if (h_resize == 0 or h_resize == 0):
-            w_resize = round(image.size[0] * 0.5)
-            h_resize = round(image.size[1] * 0.5)
 
-        return image.resize((w_resize, h_resize))
+        if len(size) == 2 and all(size):
+            return image.resize(size)
+
+        w, h = image.size
+        half_size = (round(w / 2), round(h / 2))
+        return image.resize(half_size)
 
     def image_to_base64(self, image, extension):
         """
