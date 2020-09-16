@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import base64
 import os
 from io import BytesIO
@@ -13,6 +11,7 @@ from PIL import Image, ImageFilter
 from ImageGoNord.utility.quantize import quantize_to_palette
 import ImageGoNord.utility.palette_loader as pl
 from ImageGoNord.utility.ConvertUtility import ConvertUtility
+
 
 class NordPaletteFile:
     """
@@ -38,6 +37,7 @@ class NordPaletteFile:
     FROST = "Frost.txt"
     POLAR_NIGHT = "PolarNight.txt"
     SNOW_STORM = "SnowStorm.txt"
+
 
 class GoNord(object):
     """
@@ -129,15 +129,15 @@ class GoNord(object):
     if (os.path.exists('../palettes/Nord/') == False):
         DEFAULT_PALETTE_PATH = 'ImageGoNord/palettes/Nord/'
 
-    PALETTE_LOOKUP_PATH     = DEFAULT_PALETTE_PATH
-    USE_GAUSSIAN_BLUR       = False
-    USE_AVG_COLOR           = False
-    AVG_BOX_DATA            = {"w": -2, "h": 3}
-    TRANSPARENCY_TOLERANCE  = 190
-    MAX_THREADS             = 10
+    PALETTE_LOOKUP_PATH = DEFAULT_PALETTE_PATH
+    USE_GAUSSIAN_BLUR = False
+    USE_AVG_COLOR = False
+    AVG_BOX_DATA = {"w": -2, "h": 3}
+    TRANSPARENCY_TOLERANCE = 190
+    MAX_THREADS = 10
 
-    AVAILABLE_PALETTE   = []
-    PALETTE_DATA        = {}
+    AVAILABLE_PALETTE = []
+    PALETTE_DATA = {}
 
     def __init__(self):
         """Constructor: init variables & config"""
@@ -216,7 +216,7 @@ class GoNord(object):
         """
         return Image.open(path)
 
-    def resize_image(self, image, w=0, h=0):
+    def resize_image(self, image, size=(0, 0)):
         """
         Resize an image using Pillow utility
 
@@ -224,23 +224,22 @@ class GoNord(object):
         ----------
         image : pillow image
             The source pillow image
-        w : int
-            New width
-        h : int
-            New height
+
+        :param size:
+            (width, height) of returning image, using half image size if not specified
 
         Returns
         -------
         pillow image
             resized image
         """
-        w_resize = w
-        h_resize = h
-        if (h_resize == 0 or h_resize == 0):
-            w_resize = round(image.size[0]*0.5)
-            h_resize = round(image.size[1]*0.5)
 
-        return image.resize((w_resize, h_resize))
+        if len(size) == 2 and all(size):
+            return image.resize(size)
+
+        w, h = image.size
+        half_size = (round(w / 2), round(h / 2))
+        return image.resize(half_size)
 
     def image_to_base64(self, image, extension):
         """
@@ -372,7 +371,7 @@ class GoNord(object):
                 if (is_rgba):
                     if (color_to_check[3] < self.TRANSPARENCY_TOLERANCE):
                         continue
-                
+
                 if self.USE_AVG_COLOR == True:
                     # todo: improve this feature in performance
                     color_to_check = ConvertUtility.get_avg_color(
@@ -384,7 +383,7 @@ class GoNord(object):
                     difference = color_checked[key_color_checked]
                 else:
                     differences = [[ConvertUtility.color_difference(color_to_check, target_value), target_name]
-                                for target_name, target_value in self.PALETTE_DATA.items()]
+                                   for target_name, target_value in self.PALETTE_DATA.items()]
                     differences.sort()
                     difference = differences[0][1]
 
@@ -423,8 +422,8 @@ class GoNord(object):
         else:
             step = ceil(image.size[0] / self.MAX_THREADS)
             threads = []
-            for row in range(step, image.size[0]+step, step):
-                args = (is_rgba, pixels, original_pixels, row, image.size[1], row-step, 0)
+            for row in range(step, image.size[0] + step, step):
+                args = (is_rgba, pixels, original_pixels, row, image.size[1], row - step, 0)
                 t = threading.Thread(target=self.converted_loop, args=args)
                 t.daemon = True
                 t.start()
@@ -453,4 +452,3 @@ class GoNord(object):
             the path and the filename where to save the image
         """
         image.save(path)
-
