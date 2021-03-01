@@ -71,7 +71,6 @@ def import_palette_from_file(filename):
     opened_file = open(filename, "r")
     palette = [line.replace('#', '').replace('\n', '')
                for line in opened_file.readlines()]
-    palette.remove('')
     return palette
 
 
