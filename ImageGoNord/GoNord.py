@@ -3,7 +3,7 @@ import os
 from io import BytesIO
 
 from math import ceil
-from queue import Queue
+
 import threading
 
 from PIL import Image, ImageFilter
@@ -172,6 +172,9 @@ class GoNord(object):
             for hex_color in hex_colors:
                 self.PALETTE_DATA[hex_color] = pl.export_tripletes_from_color(
                     hex_color)
+
+        if len(self.PALETTE_DATA['']) == 0:
+            del self.PALETTE_DATA['']
 
         return self.PALETTE_DATA
 
