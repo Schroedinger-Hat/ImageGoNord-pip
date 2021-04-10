@@ -173,7 +173,8 @@ class GoNord(object):
                 self.PALETTE_DATA[hex_color] = pl.export_tripletes_from_color(
                     hex_color)
 
-        if len(self.PALETTE_DATA['']) == 0:
+        # Delete empty lines, if they exist.
+        if self.PALETTE_DATA.get('') and len(self.PALETTE_DATA['']) == 0:
             del self.PALETTE_DATA['']
 
         return self.PALETTE_DATA
