@@ -3,6 +3,3 @@ description: 'Upload your release to PyPi package manager'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  env:
-    TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-    TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
