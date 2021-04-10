@@ -4,9 +4,15 @@ on:
   workflow_dispatch:
   release:
     types: [published]
-runs:
-  using: docker
-  image: Dockerfile
-  env:
-    TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-    TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+
+jobs:
+  upload_episode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Upload Episode from YouTube To Anchor.Fm
+        uses: ./
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+
