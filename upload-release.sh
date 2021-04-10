@@ -6,8 +6,8 @@
 #     return -1
 # fi
 
-exec python setup.py sdist bdist_wheel
-echo "Build finished"
+# exec python setup.py sdist bdist_wheel
+# echo "Build finished"
 
 # TODO: check if dist & build directory are existing and also with the correct files
 
