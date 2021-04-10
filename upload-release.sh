@@ -1,10 +1,10 @@
 #!/bin/sh -l
 
-if $TWINE_USERNAME == "" || $TWINE_PASSWORD == ""
-then
-    echo "No twine username"
-    return -1
-fi
+# if $TWINE_USERNAME == "" || $TWINE_PASSWORD == ""
+# then
+#     echo "No twine username"
+#     return -1
+# fi
 
 exec python setup.py sdist bdist_wheel
 echo "Build finished"
