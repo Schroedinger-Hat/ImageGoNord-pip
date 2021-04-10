@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   release:
     types: [published]
-
 runs:
   using: docker
   image: Dockerfile
