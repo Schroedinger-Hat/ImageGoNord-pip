@@ -1,0 +1,14 @@
+name: 'Upload latest release on PyPi'
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  upload_by_twine:
+    runs:
+      using: docker
+      image: Dockerfile
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
