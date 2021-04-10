@@ -12,5 +12,5 @@ echo "Build finished"
 # TODO: check if dist & build directory are existing and also with the correct files
 
 echo "Twine init"
-exec twine -u $TWINE_USERNAME -p $TWINE_PASSWORD upload dist/*
+exec twine upload dist/*
 echo "Twine ended"
