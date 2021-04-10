@@ -1,6 +1,7 @@
 name: 'Upload latest release on PyPi'
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 

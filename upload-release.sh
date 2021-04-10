@@ -1,12 +1,12 @@
-#!/usr/bin/bash
+#!/bin/sh -l
 
 if TWINE_USERNAME == "" || TWINE_PASSWORD == ""
 then
     echo "No twine username"
-    exit()
+    return -1
 fi
 
-exec python .\setup.py sdist bdist_wheel
+exec python setup.py sdist bdist_wheel
 
 # TODO: check if dist & build directory are existing and also with the correct files
 
