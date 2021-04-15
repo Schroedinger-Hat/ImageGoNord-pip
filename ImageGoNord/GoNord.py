@@ -218,7 +218,11 @@ class GoNord(object):
         pillow image
             opened image
         """
-        return Image.open(path)
+        opened_image = Image.open(path)
+        if (type(opened_image.getpixel((0,0))) == int):
+            opened_image = opened_image.convert('RGB')
+
+        return opened_image
 
     def resize_image(self, image, size=(0, 0)):
         """
