@@ -8,6 +8,14 @@ import threading
 
 from PIL import Image, ImageFilter
 
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    # Try backported to PY<37 `importlib_resources`.
+    import importlib_resources as pkg_resources
+
+from .palettes import Nord as nord_palette
+
 from ImageGoNord.utility.quantize import quantize_to_palette
 import ImageGoNord.utility.palette_loader as pl
 from ImageGoNord.utility.ConvertUtility import ConvertUtility
@@ -127,7 +135,8 @@ class GoNord(object):
     DEFAULT_PALETTE_PATH = '../palettes/Nord/'
 
     if (os.path.exists('../palettes/Nord/') == False):
-        DEFAULT_PALETTE_PATH = 'ImageGoNord/palettes/Nord/'
+        pa = pkg_resources.open_text(nord_palette, NordPaletteFile.AURORA)
+        DEFAULT_PALETTE_PATH = os.path.dirname(nord_palette.__file__) + '/'
 
     PALETTE_LOOKUP_PATH = DEFAULT_PALETTE_PATH
     USE_GAUSSIAN_BLUR = False

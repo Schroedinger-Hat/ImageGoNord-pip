@@ -7,6 +7,7 @@ go_nord.convert_image(image, save_path='images/test.processed.jpg') """
 # E.g. Avg algorithm and less colors
 go_nord.enable_avg_algorithm()
 # go_nord.reset_palette()
+# go_nord.set_palette_lookup_path('./mypalette')
 # go_nord.add_file_to_palette(NordPaletteFile.POLAR_NIGHT)
 # go_nord.add_file_to_palette(NordPaletteFile.SNOW_STORM)
 # go_nord.add_color_to_palette('#FF0000')
