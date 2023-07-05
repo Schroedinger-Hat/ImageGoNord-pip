@@ -8,10 +8,7 @@ import threading
 
 from PIL import Image, ImageFilter
 
-
-from datetime import datetime
 import numpy as np
-import subprocess
 import ffmpeg
 import uuid
 
@@ -479,7 +476,7 @@ class GoNord(object):
 
 
 
-    def get_video_information(video_path):
+    def get_video_information(self, video_path):
         '''
         Get basic information about the video file.
 
@@ -499,7 +496,7 @@ class GoNord(object):
 
         return width, height, framerate, duration, total_frames
 
-    def convert_vid_to_np_arr(video_path, width, height, start_time, duration):
+    def convert_vid_to_np_arr(self, video_path, width, height, start_time, duration):
         '''
         Convert video to array of numpy elements.
 
@@ -513,64 +510,21 @@ class GoNord(object):
 
         #@param duration: Number of frames to capture
         '''
-        command = [ "ffmpeg",
-                "-ss", str(start_time), # seek time
-                "-i", video_path, # input path
-                "-pix_fmt", "rgb24", # pixel format
-                "-f", "rawvideo", # video format
-                "-t", str(duration), # duration/ number of frames
-                "-loglevel", "quiet", # log level
-                "pipe:" ] # output
-
-        # Run the above command and output the result to stdout
-        process = subprocess.run(command, stdout=subprocess.PIPE, bufsize=10**8)
-
+        out, _ = (
+            ffmpeg
+            .input(video_path, ss=str(start_time), t=str(duration))
+            .output('pipe:', format='rawvideo', pix_fmt='rgb24', loglevel="quiet")
+            .run(capture_stdout=True)
+        )
         # Generate numpy array from stdout
         video_np_arr = (
             np
-            .frombuffer(process.stdout, dtype = np.uint8)
+            .frombuffer(out, np.uint8)
             .reshape([-1, height, width, 3])
         )
         return video_np_arr
 
-    def convert_palette(color_cube, image):
-        '''
-        Convert each frame to desired color palette.
-
-        #@param color_cube: Color cube created from the palette
-
-        #@param image: Current frame.
-        '''
-        shape = image.shape[0:2]
-        indices = image.reshape(-1,3)
-        # Pass image colors and retrieve corresponding palette color
-        new_image = color_cube[indices[:,0],indices[:,1],indices[:,2]]
-
-        return new_image.reshape(shape[0],shape[1],3).astype(np.uint8)
-
-    def generate_color_map(palette, palette_name):
-        '''
-        Generate a color cube.
-
-        #@param palette: Numpy array which contains the complete color palette.
-
-        #@param palette_name: Name of the color palette.
-        '''
-        precalculated = np.zeros(shape=[256,256,256,3])
-        for i in range(256):
-            print(f"building color palette: %0.2f%%" %(100 * i / 256))
-            clear_lines()
-            for j in range(256):
-                for k in range(256):
-                    index = np.argmin(np.sqrt(np.sum(
-                            ((palette)-np.array([i,j,k]))**2,
-                            axis=1
-                        )))
-                    precalculated[i,j,k] = palette[index]
-        print("building color palette: 100%")
-        np.savez_compressed(palette_name, color_cube = precalculated)
-
-    def vidwrite(fn, cube, images, framerate, start_frame, total_frames, vcodec="libx264"):
+    def vidwrite(self, fn, cube, images, framerate, start_frame, total_frames, vcodec="libx264"):
         '''
         Generate video from the numpy array.
 
@@ -596,17 +550,17 @@ class GoNord(object):
                 .run_async(pipe_stdin=True)
         )
         for idx, frame in enumerate(images):
-            clear_lines()
+            self.clear_lines()
             print(f"Frame: {start_frame + idx + 1}/{total_frames}")
             process.stdin.write(
-                convert_palette(cube, frame)
+                ConvertUtility.convert_palette(cube, frame)
                     .astype(np.uint8)
                     .tobytes()
             )
         process.stdin.close()
         process.wait()
 
-    def concat_video(uid, out):
+    def concat_video(self, uid, out):
         '''
         Concatenate two videos.
 
@@ -614,21 +568,22 @@ class GoNord(object):
 
         #@param out: Output video
         '''
-        command = [
-            "ffmpeg",
-            "-f", "concat",
-            "-i", f"vids_{uid}.txt",
-            "-c", "copy",
-            "-loglevel", "quiet",
-            "-y",
-            f"output_{uid}.mp4"
-        ]
-        subprocess.run(command)
+        
+        main = ffmpeg.input(out)
+        temp = ffmpeg.input(f'temp_{uid}.mp4')
+        (
+            ffmpeg
+            .filter([main, temp],"concat")
+            .output(f"output_{uid}.mp4", pix_fmt='rgb24', loglevel="quiet")
+            .overwrite_output()
+            .run(capture_stdout=True)
+        )
         os.remove(out)
+        os.remove(f'temp_{uid}.mp4')
         os.rename(f"output_{uid}.mp4", out)
         
 
-    def clear_lines(lines = 1):
+    def clear_lines(self, lines = 1):
         '''
         Clear the last 'n' lines
 
@@ -639,12 +594,10 @@ class GoNord(object):
         for _ in range(lines):
             print(LINE_UP, end=LINE_CLEAR)
 
-    def main(_input, _output):
+    def convert_video(self, _input, _output):
         # Generate some random unique identifier that is generated for each session for the temporary files.
         uid = uuid.uuid4()
-
-        start_time = datetime.now()
-
+        #TODO: Remove palette from file
         nord_palette = np.array(
             [[46, 52,  64], # nord 0
             [59, 66,  82], # nord 1
@@ -670,13 +623,13 @@ class GoNord(object):
             # for all colors (256*256*256) assign color from palette
             precalculated = np.load(f"{palette_name}.npz")["color_cube"]
         except:
-            generate_color_map(nord_palette, palette_name)
+            pl.generate_color_map(nord_palette, palette_name)
             precalculated = np.load(f"{palette_name}.npz")["color_cube"]
 
         # Initialize variables for conversion
-        width, height, framerate, duration, total_frames = get_video_information(_input)
+        width, height, framerate, duration, total_frames = self.get_video_information(_input)
 
-        frames_per_batch = 100
+        frames_per_batch = 25
         frame_number = 0
         timestamp = 0
         batch_dur = frames_per_batch / framerate
@@ -688,20 +641,14 @@ class GoNord(object):
         print(f"Duration: {duration} s\n")
         print(f"Processed: {frame_number} / {total_frames} frames")
 
-        # Create a file that contains the names of the two video files for concatenation
-        f = open(f"vids_{uid}.txt", "w")
-        f.write(f"file '{_output}'\n")
-        f.write(f"file 'temp_{uid}.mp4'\n")
-        f.close()
-
         # Process the entire video in batches of `frames_per_batch` frames
         while frame_number < total_frames:
-            np_arr = convert_vid_to_np_arr(_input, width, height, timestamp, batch_dur)
+            np_arr = self.convert_vid_to_np_arr(_input, width, height, timestamp, batch_dur)
             if os.path.exists(_output):
-                vidwrite(f"temp_{uid}.mp4", precalculated, np_arr, framerate, frame_number, total_frames)
-                concat_video(uid, _output)
+                self.vidwrite(f"temp_{uid}.mp4", precalculated, np_arr, framerate, frame_number, total_frames)
+                self.concat_video(uid, _output)
             else:
-                vidwrite(_output, precalculated, np_arr, framerate, frame_number, total_frames)
+                self.vidwrite(_output, precalculated, np_arr, framerate, frame_number, total_frames)
             if (total_frames - frame_number) < frames_per_batch:
                 frames_per_batch = total_frames - frame_number
             frame_number += frames_per_batch
@@ -709,9 +656,3 @@ class GoNord(object):
             timestamp += batch_dur 
             batch_dur = batch_dur if duration > batch_dur else duration
         # print(f"Memory used: {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024} Mbs")
-
-        # Remove the temporary files
-        if os.path.exists(f"temp_{uid}.mp4"):
-            os.remove(f"temp_{uid}.mp4")
-        os.remove(f"vids_{uid}.txt")
-        print(f"Total running duration: {datetime.now() - start_time}")
