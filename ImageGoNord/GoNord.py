@@ -494,7 +494,7 @@ class GoNord(object):
         duration = float(video_stream["duration"])
         total_frames = int(video_stream["nb_frames"])
 
-        return width, height, framerate, duration, total_frames
+        return width, height, round(framerate, 2), duration, total_frames
 
     def convert_vid_to_np_arr(self, video_path, width, height, start_time, duration):
         '''
@@ -629,7 +629,7 @@ class GoNord(object):
         # Initialize variables for conversion
         width, height, framerate, duration, total_frames = self.get_video_information(_input)
 
-        frames_per_batch = 25
+        frames_per_batch = 200
         frame_number = 0
         timestamp = 0
         batch_dur = frames_per_batch / framerate

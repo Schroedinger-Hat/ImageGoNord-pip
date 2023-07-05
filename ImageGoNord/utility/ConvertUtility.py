@@ -83,7 +83,7 @@ class ConvertUtility:
 
     return avg_color
   
-  def convert_palette(self, color_cube, image):
+  def convert_palette(color_cube, image):
     """Convert frame color palette
 
     Parameters
