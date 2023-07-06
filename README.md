@@ -58,7 +58,6 @@ You can convert any image into the nord palette (or others). Here are some examp
 
 -----
 
-
 **Original**
 
 [![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)
@@ -73,11 +72,11 @@ You can convert any image into the nord palette (or others). Here are some examp
 You can also convert videos into the nord palette (or others). Here is an example:  
 **Original**  
 
-https://github.com/05Alston/ImageGoNord-pip/blob/master/videos/SampleVideo_720x480.mp4
+https://github.com/05Alston/ImageGoNord-pip/assets/89850018/76d4c4a6-9660-4a02-9f46-e5f3f6d0147a
 
 **Processed with algorithm**
 
-https://github.com/05Alston/ImageGoNord-pip/blob/master/videos/SampleVideo_720x480_converted.mp4
+https://github.com/05Alston/ImageGoNord-pip/assets/89850018/13822280-c019-49b1-92f7-7c658b33a01d
 
 ### Core Technical Concepts
 
