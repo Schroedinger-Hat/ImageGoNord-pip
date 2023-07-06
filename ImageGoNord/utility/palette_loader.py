@@ -142,12 +142,8 @@ def generate_color_map(palette, palette_name):
   """
   if not isinstance(palette, np.ndarray):
     palette = np.asarray(palette)
-  LINE_UP = "\033[1A"
-  LINE_CLEAR = "\x1b[2K"
   precalculated = np.zeros(shape=[256,256,256,3])
   for i in range(256):
-    print(f"building color palette: %0.2f%%" %(100 * i / 256))
-    print(LINE_UP, end=LINE_CLEAR)
     for j in range(256):
       for k in range(256):
         index = np.argmin(np.sqrt(np.sum(
@@ -155,5 +151,4 @@ def generate_color_map(palette, palette_name):
             axis=1
           )))
         precalculated[i,j,k] = palette[index]
-  print("building color palette: 100%")
   np.savez_compressed(palette_name, color_cube = precalculated)    
