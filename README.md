@@ -68,6 +68,17 @@ You can convert any image into the nord palette (or others). Here are some examp
 
 [![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)
 
+-----
+
+You can also convert videos into the nord palette (or others). Here is an example:  
+**Original**  
+
+https://github.com/05Alston/ImageGoNord-pip/blob/master/videos/SampleVideo_720x480.mp4
+
+**Processed with algorithm**
+
+https://github.com/05Alston/ImageGoNord-pip/blob/master/videos/SampleVideo_720x480_converted.mp4
+
 ### Core Technical Concepts
 
 We are using the PIL because it is the most simple library and it is very useful when you need to manipulate some images.

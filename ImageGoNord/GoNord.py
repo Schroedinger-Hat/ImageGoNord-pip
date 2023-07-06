@@ -630,6 +630,11 @@ class GoNord(object):
             Input video file path
         _output : str
             Output video file path
+        palette_name : str
+            Name of palette to choose
+        _frames_per_batch : int / optional
+            Number of frames to keep in a batch
+            Higher number indicates more memory usage but faster execution due to lesser number of parts 
 
         Returns
         -------
