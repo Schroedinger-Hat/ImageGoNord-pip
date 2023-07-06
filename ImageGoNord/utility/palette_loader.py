@@ -130,7 +130,7 @@ def generate_color_map(palette, palette_name):
 
   Parameters
   ----------
-  palette: ndarray
+  palette: ndarray / list
     Contains the palette in ndarray form(RGB values split)
   palette_name: string
     Name of the color palette
@@ -140,18 +140,20 @@ def generate_color_map(palette, palette_name):
   None
     Generates a .npz file and saves it to disk
   """
+  if not isinstance(palette, np.ndarray):
+    palette = np.asarray(palette)
   LINE_UP = "\033[1A"
   LINE_CLEAR = "\x1b[2K"
   precalculated = np.zeros(shape=[256,256,256,3])
   for i in range(256):
-      print(f"building color palette: %0.2f%%" %(100 * i / 256))
-      print(LINE_UP, end=LINE_CLEAR)
-      for j in range(256):
-          for k in range(256):
-              index = np.argmin(np.sqrt(np.sum(
-                      ((palette)-np.array([i,j,k]))**2,
-                      axis=1
-                  )))
-              precalculated[i,j,k] = palette[index]
+    print(f"building color palette: %0.2f%%" %(100 * i / 256))
+    print(LINE_UP, end=LINE_CLEAR)
+    for j in range(256):
+      for k in range(256):
+        index = np.argmin(np.sqrt(np.sum(
+            ((palette)-np.array([i,j,k]))**2,
+            axis=1
+          )))
+        precalculated[i,j,k] = palette[index]
   print("building color palette: 100%")
   np.savez_compressed(palette_name, color_cube = precalculated)    

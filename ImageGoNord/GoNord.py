@@ -477,11 +477,20 @@ class GoNord(object):
 
 
     def get_video_information(self, video_path):
-        '''
-        Get basic information about the video file.
+        """
+        Get basic information about the video file
 
-        #@param video_path: Relative/Absolute path of input video file
-        '''
+        Parameters
+        ----------
+        video_path : str
+            Path of input video file
+
+        Returns
+        -------
+        tuple
+            The tuple of width, height, avg_framerate, duration, total_frames
+        """
+
         probe = ffmpeg.probe(video_path)
         video_stream = next(
                 (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
@@ -497,19 +506,33 @@ class GoNord(object):
         return width, height, round(framerate, 2), duration, total_frames
 
     def convert_vid_to_np_arr(self, video_path, width, height, start_time, duration):
-        '''
-        Convert video to array of numpy elements.
+        """
+        Convert video to array of numpy elements
 
-        #@param video_path: Relative/Absolute path of input video file
+        Parameters
+        ----------
+        video_path : str
+            Path of input video file
+        width : int
+            Width of video(numpy array width)
+        height: int
+            Height of video(numpy array depth)
+        start_time : int
+            Time to seek forward in the video
+        duration : int
+            Number of frames to capture
+        fill_color: str
+            Default fill color as foreground
+        save_path : str, optional
+            the path and the filename where to save the image
 
-        #@param width: Width of video(numpy array width)
 
-        #@param height: Height of video(numpy array depth)
-
-        #@param start_time: Time to seek forward in the video
-
-        #@param duration: Number of frames to capture
-        '''
+        Returns
+        -------
+        ndarray
+            The numpy array of video frames
+        """
+        
         out, _ = (
             ffmpeg
             .input(video_path, ss=str(start_time), t=str(duration))
@@ -525,19 +548,28 @@ class GoNord(object):
         return video_np_arr
 
     def vidwrite(self, fn, cube, images, framerate, start_frame, total_frames, vcodec="libx264"):
-        '''
-        Generate video from the numpy array.
+        """
+        Generate video from the numpy array
 
-        #@param fn: Filename.
-        
-        #@param cube: color map that is generated.
-        
-        #@param images: (Numpy array / normal list) of frames.
-        
-        #@param framerate: FPS of the video.
+        Parameters
+        ----------
+        fn : str
+            Filename
+        cube : ndarray
+            color map that is generated
+        images: ndarray / list
+            list of frames
+        framerate : float
+            FPS of the video
+        v_codec : str / optional
+            Video codec of the output
 
-        #@param v_codec: Video codec of the output.
-        '''
+        Returns
+        -------
+        None
+            Convert the numpy array to video and save to disk
+        """
+        
         # If images is a list, convert to ndarray
         if not isinstance(images, np.ndarray):
             images = np.asarray(images)
@@ -561,13 +593,21 @@ class GoNord(object):
         process.wait()
 
     def concat_video(self, uid, out):
-        '''
-        Concatenate two videos.
+        """
+        Concatenate two videos
 
-        #@param uid: Unique identifier for the session
+        Parameters
+        ----------
+        uid : str
+            Unique identifier for the session
+        out : str
+            Output video file path
 
-        #@param out: Output video
-        '''
+        Returns
+        -------
+        None
+            Concatenate two videos and save to disk
+        """
         
         main = ffmpeg.input(out)
         temp = ffmpeg.input(f'temp_{uid}.mp4')
@@ -584,17 +624,41 @@ class GoNord(object):
         
 
     def clear_lines(self, lines = 1):
-        '''
+        """
         Clear the last 'n' lines
 
-        #@param lines: Number of terminal lines to go up.
-        '''
+        Parameters
+        ----------
+        lines : int
+            Number of terminal lines to go up
+
+        Returns
+        -------
+        None
+            Clear lines in console
+        """
+
         LINE_UP = "\033[1A"
         LINE_CLEAR = "\x1b[2K"
         for _ in range(lines):
             print(LINE_UP, end=LINE_CLEAR)
 
     def convert_video(self, _input, _output):
+        """
+        Concatenate two videos
+
+        Parameters
+        ----------
+        _input : str
+            Input video file path
+        _output : str
+            Output video file path
+
+        Returns
+        -------
+        None
+            Convert input video and save to disk
+        """
         # Generate some random unique identifier that is generated for each session for the temporary files.
         uid = uuid.uuid4()
         #TODO: Remove palette from file
@@ -655,4 +719,3 @@ class GoNord(object):
             duration -= batch_dur
             timestamp += batch_dur 
             batch_dur = batch_dur if duration > batch_dur else duration
-        # print(f"Memory used: {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024} Mbs")
