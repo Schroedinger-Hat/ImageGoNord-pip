@@ -493,15 +493,15 @@ class GoNord(object):
 
         probe = ffmpeg.probe(video_path)
         video_stream = next(
-                (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
+                (stream for stream in probe['streams'] if stream['codec_type'] == 'video'),
                 None)
 
-        width = int(video_stream["width"])
-        height = int(video_stream["height"])
-        avg_frame_rate = video_stream["avg_frame_rate"].split("/")
+        width = int(video_stream['width'])
+        height = int(video_stream['height'])
+        avg_frame_rate = video_stream['avg_frame_rate'].split('/')
         framerate = int(avg_frame_rate[0]) / int(1 if avg_frame_rate[1] == 0 else avg_frame_rate[1])
-        duration = float(video_stream["duration"])
-        total_frames = int(video_stream["nb_frames"])
+        duration = float(video_stream['duration'])
+        total_frames = int(video_stream['nb_frames'])
 
         return width, height, round(framerate, 2), duration, total_frames
 
@@ -536,7 +536,7 @@ class GoNord(object):
         out, _ = (
             ffmpeg
             .input(video_path, ss=str(start_time), t=str(duration))
-            .output('pipe:', format='rawvideo', pix_fmt='rgb24', loglevel="quiet")
+            .output('pipe:', format='rawvideo', pix_fmt='rgb24', loglevel='quiet')
             .run(capture_stdout=True)
         )
         # Generate numpy array from stdout
@@ -547,7 +547,7 @@ class GoNord(object):
         )
         return video_np_arr
 
-    def vidwrite(self, fn, cube, images, framerate, start_frame, total_frames, vcodec="libx264"):
+    def vidwrite(self, fn, cube, images, framerate, start_frame, total_frames, vcodec='libx264'):
         """
         Generate video from the numpy array
 
@@ -576,14 +576,14 @@ class GoNord(object):
         height, width = images.shape[1:3]
         process = (
             ffmpeg
-                .input("pipe:", format="rawvideo", pix_fmt="rgb24", s="{}x{}".format(width, height))
-                .output(fn, pix_fmt="yuv420p", vcodec=vcodec, r=framerate, loglevel="quiet")
+                .input('pipe:', format='rawvideo', pix_fmt='rgb24', r=framerate, s='{}x{}'.format(width, height))
+                .output(fn, pix_fmt='yuv420p', vcodec=vcodec, loglevel='quiet')
                 .overwrite_output()
                 .run_async(pipe_stdin=True)
         )
         for idx, frame in enumerate(images):
             self.clear_lines()
-            print(f"Frame: {start_frame + idx + 1}/{total_frames}")
+            print(f'Frame: {start_frame + idx + 1}/{total_frames}')
             process.stdin.write(
                 ConvertUtility.convert_palette(cube, frame)
                     .astype(np.uint8)
@@ -613,14 +613,14 @@ class GoNord(object):
         temp = ffmpeg.input(f'temp_{uid}.mp4')
         (
             ffmpeg
-            .filter([main, temp],"concat")
-            .output(f"output_{uid}.mp4", pix_fmt='rgb24', loglevel="quiet")
+            .filter([main, temp],'concat')
+            .output(f'output_{uid}.mp4', pix_fmt='rgb24', loglevel='quiet')
             .overwrite_output()
             .run(capture_stdout=True)
         )
         os.remove(out)
         os.remove(f'temp_{uid}.mp4')
-        os.rename(f"output_{uid}.mp4", out)
+        os.rename(f'output_{uid}.mp4', out)
         
 
     def clear_lines(self, lines = 1):
@@ -638,12 +638,12 @@ class GoNord(object):
             Clear lines in console
         """
 
-        LINE_UP = "\033[1A"
-        LINE_CLEAR = "\x1b[2K"
+        LINE_UP = '\033[1A'
+        LINE_CLEAR = '\x1b[2K'
         for _ in range(lines):
             print(LINE_UP, end=LINE_CLEAR)
 
-    def convert_video(self, _input, _output):
+    def convert_video(self, _input, _output, _frames_per_batch = 200):
         """
         Concatenate two videos
 
@@ -663,35 +663,36 @@ class GoNord(object):
         uid = uuid.uuid4()
         palette = list(self.PALETTE_DATA.values())
         #TODO: Find a fix for palette_name
-        palette_name = "nord"
+        palette_name = 'nord'
+        print(_input.split('.')[-1])
         # run once to generate the color map file
         try:
             # for all colors (256*256*256) assign color from palette
-            precalculated = np.load(f"{palette_name}.npz")["color_cube"]
+            precalculated = np.load(f'{palette_name}.npz')['color_cube']
         except:
             pl.generate_color_map(palette, palette_name)
-            precalculated = np.load(f"{palette_name}.npz")["color_cube"]
+            precalculated = np.load(f'{palette_name}.npz')['color_cube']
 
         # Initialize variables for conversion
         width, height, framerate, duration, total_frames = self.get_video_information(_input)
 
-        frames_per_batch = 200
+        frames_per_batch = _frames_per_batch
         frame_number = 0
         timestamp = 0
         batch_dur = frames_per_batch / framerate
         batch_dur = batch_dur if duration > batch_dur else duration
-        print("####VIDEO INFORMATION#####")
-        print(f"Width: {width}")
-        print(f"Height: {height}")
-        print(f"FPS: {framerate}")
-        print(f"Duration: {duration} s\n")
-        print(f"Processed: {frame_number} / {total_frames} frames")
+        print('####VIDEO INFORMATION#####')
+        print(f'Width: {width}')
+        print(f'Height: {height}')
+        print(f'FPS: {framerate}')
+        print(f'Duration: {duration} s\n')
+        print(f'Processed: {frame_number} / {total_frames} frames')
 
         # Process the entire video in batches of `frames_per_batch` frames
         while frame_number < total_frames:
             np_arr = self.convert_vid_to_np_arr(_input, width, height, timestamp, batch_dur)
             if os.path.exists(_output):
-                self.vidwrite(f"temp_{uid}.mp4", precalculated, np_arr, framerate, frame_number, total_frames)
+                self.vidwrite(f'temp_{uid}.mp4', precalculated, np_arr, framerate, frame_number, total_frames)
                 self.concat_video(uid, _output)
             else:
                 self.vidwrite(_output, precalculated, np_arr, framerate, frame_number, total_frames)
