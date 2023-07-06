@@ -661,33 +661,15 @@ class GoNord(object):
         """
         # Generate some random unique identifier that is generated for each session for the temporary files.
         uid = uuid.uuid4()
-        #TODO: Remove palette from file
-        nord_palette = np.array(
-            [[46, 52,  64], # nord 0
-            [59, 66,  82], # nord 1
-            [67, 76,  94], # nord 2
-            [76, 86, 106], # nord 3
-            [216, 222, 233], # nord 4
-            [229, 233, 240], # nord 5
-            [236, 239, 244], # nord 6
-            [143, 188, 187], # nord 7
-            [136, 192, 208], # nord 8
-            [129, 161, 193], # nord 9
-            [94, 129, 172], # nord 10
-            [191, 97, 106], # nord 11
-            [208, 135, 112], # nord 12
-            [235, 203, 139], # nord 13
-            [163, 190, 140], # nord 14
-            [180, 142, 173]] # nord 15
-        )
-
+        palette = list(self.PALETTE_DATA.values())
+        #TODO: Find a fix for palette_name
         palette_name = "nord"
         # run once to generate the color map file
         try:
             # for all colors (256*256*256) assign color from palette
             precalculated = np.load(f"{palette_name}.npz")["color_cube"]
         except:
-            pl.generate_color_map(nord_palette, palette_name)
+            pl.generate_color_map(palette, palette_name)
             precalculated = np.load(f"{palette_name}.npz")["color_cube"]
 
         # Initialize variables for conversion
