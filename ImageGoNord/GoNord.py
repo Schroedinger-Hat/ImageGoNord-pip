@@ -500,8 +500,8 @@ class GoNord(object):
         height = int(video_stream['height'])
         avg_frame_rate = video_stream['avg_frame_rate'].split('/')
         framerate = int(avg_frame_rate[0]) / int(1 if avg_frame_rate[1] == 0 else avg_frame_rate[1])
-        duration = float(video_stream['duration'])
-        total_frames = int(video_stream['nb_frames'])
+        duration = float(probe['format']['duration'])
+        total_frames = int(duration * framerate)
 
         return width, height, round(framerate, 2), duration, total_frames
 
@@ -620,7 +620,7 @@ class GoNord(object):
         os.remove(f'temp_{uid}.mp4')
         os.rename(f'output_{uid}.mp4', out)
 
-    def convert_video(self, _input, _output, palette_name, _frames_per_batch = 200):
+    def convert_video(self, _input, palette_name, _frames_per_batch = 200):
         """
         Concatenate two videos
 
@@ -628,8 +628,6 @@ class GoNord(object):
         ----------
         _input : str
             Input video file path
-        _output : str
-            Output video file path
         palette_name : str
             Name of palette to choose
         _frames_per_batch : int / optional
@@ -644,6 +642,8 @@ class GoNord(object):
         # Generate some random unique identifier that is generated for each session for the temporary files.
         uid = uuid.uuid4()
         palette = list(self.PALETTE_DATA.values())
+
+        _output = _input.split('.')[0] + str(uid) +'_converted.mp4'
         # run once to generate the color map file
         try:
             # for all colors (256*256*256) assign color from palette
