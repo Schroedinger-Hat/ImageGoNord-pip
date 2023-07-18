@@ -32,6 +32,6 @@ setup(
     packages=find_packages(),
     package_data={'': ['*.txt', 'palettes/*.txt']},
     include_package_data=True,
-    install_requires=["Pillow"],
+    install_requires=["Pillow", "ffmpeg-python", "numpy"],
     python_requires=">=3.5"
 )

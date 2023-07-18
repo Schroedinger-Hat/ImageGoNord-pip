@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import numpy as np
 
 class ConvertUtility:
   """
@@ -81,3 +82,27 @@ class ConvertUtility:
       avg_color = avg_color + (int(a/size), )
 
     return avg_color
+  
+  def convert_palette(color_cube, image):
+    """Convert frame color palette
+
+    Parameters
+    ----------
+    color_cube: ndarray
+      Color map of RGB colorspace created from palette colors
+    image: ndarray
+      Current frame
+
+    Returns
+    -------
+    ndarray
+      color converted frame
+    """
+
+    shape = image.shape[0:2]
+    indices = image.reshape(-1,3)
+    # Pass image colors and retrieve corresponding palette color
+    new_image = color_cube[indices[:,0],indices[:,1],indices[:,2]]
+
+    return new_image.reshape(shape[0],shape[1],3).astype(np.uint8)
+

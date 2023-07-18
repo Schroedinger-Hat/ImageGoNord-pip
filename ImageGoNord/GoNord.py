@@ -8,6 +8,10 @@ import threading
 
 from PIL import Image, ImageFilter
 
+import numpy as np
+import ffmpeg
+import uuid
+
 try:
     import importlib.resources as pkg_resources
 except ImportError:
@@ -469,3 +473,205 @@ class GoNord(object):
             the path and the filename where to save the image
         """
         image.save(path)
+
+
+
+    def get_video_information(self, video_path):
+        """
+        Get basic information about the video file
+
+        Parameters
+        ----------
+        video_path : str
+            Path of input video file
+
+        Returns
+        -------
+        tuple
+            The tuple of width, height, avg_framerate, duration, total_frames
+        """
+
+        probe = ffmpeg.probe(video_path)
+        video_stream = next(
+                (stream for stream in probe['streams'] if stream['codec_type'] == 'video'),
+                None)
+
+        width = int(video_stream['width'])
+        height = int(video_stream['height'])
+        avg_frame_rate = video_stream['avg_frame_rate'].split('/')
+        framerate = int(avg_frame_rate[0]) / int(1 if avg_frame_rate[1] == 0 else avg_frame_rate[1])
+        duration = float(probe['format']['duration'])
+        total_frames = int(duration * framerate)
+
+        return width, height, round(framerate, 2), duration, total_frames
+
+    def convert_vid_to_np_arr(self, video_path, width, height, start_time, duration):
+        """
+        Convert video to array of numpy elements
+
+        Parameters
+        ----------
+        video_path : str
+            Path of input video file
+        width : int
+            Width of video(numpy array width)
+        height: int
+            Height of video(numpy array depth)
+        start_time : int
+            Time to seek forward in the video
+        duration : int
+            Number of frames to capture
+        fill_color: str
+            Default fill color as foreground
+        save_path : str, optional
+            the path and the filename where to save the image
+
+
+        Returns
+        -------
+        ndarray
+            The numpy array of video frames
+        """
+        
+        out, _ = (
+            ffmpeg
+            .input(video_path, ss=str(start_time), t=str(duration))
+            .output('pipe:', format='rawvideo', pix_fmt='rgb24', loglevel='quiet')
+            .run(capture_stdout=True)
+        )
+        # Generate numpy array from stdout
+        video_np_arr = (
+            np
+            .frombuffer(out, np.uint8)
+            .reshape([-1, height, width, 3])
+        )
+        return video_np_arr
+
+    def vidwrite(self, fn, cube, images, framerate, start_frame, total_frames, vcodec='libx264'):
+        """
+        Generate video from the numpy array
+
+        Parameters
+        ----------
+        fn : str
+            Filename
+        cube : ndarray
+            color map that is generated
+        images: ndarray / list
+            list of frames
+        framerate : float
+            FPS of the video
+        v_codec : str / optional
+            Video codec of the output
+
+        Returns
+        -------
+        None
+            Convert the numpy array to video and save to disk
+        """
+        
+        # If images is a list, convert to ndarray
+        if not isinstance(images, np.ndarray):
+            images = np.asarray(images)
+        height, width = images.shape[1:3]
+        process = (
+            ffmpeg
+                .input('pipe:', format='rawvideo', pix_fmt='rgb24', r=framerate, s='{}x{}'.format(width, height))
+                .output(fn, pix_fmt='yuv420p', vcodec=vcodec, loglevel='quiet')
+                .overwrite_output()
+                .run_async(pipe_stdin=True)
+        )
+        for idx, frame in enumerate(images):
+            process.stdin.write(
+                ConvertUtility.convert_palette(cube, frame)
+                    .astype(np.uint8)
+                    .tobytes()
+            )
+        process.stdin.close()
+        process.wait()
+
+    def concat_video(self, uid, out):
+        """
+        Concatenate two videos
+
+        Parameters
+        ----------
+        uid : str
+            Unique identifier for the session
+        out : str
+            Output video file path
+
+        Returns
+        -------
+        None
+            Concatenate two videos and save to disk
+        """
+        
+        main = ffmpeg.input(out)
+        temp = ffmpeg.input(f'temp_{uid}.mp4')
+        (
+            ffmpeg
+            .filter([main, temp],'concat')
+            .output(f'output_{uid}.mp4', pix_fmt='rgb24', loglevel='quiet')
+            .overwrite_output()
+            .run(capture_stdout=True)
+        )
+        os.remove(out)
+        os.remove(f'temp_{uid}.mp4')
+        os.rename(f'output_{uid}.mp4', out)
+
+    def convert_video(self, _input, palette_name, _frames_per_batch = 200):
+        """
+        Concatenate two videos
+
+        Parameters
+        ----------
+        _input : str
+            Input video file path
+        palette_name : str
+            Name of palette to choose
+        _frames_per_batch : int / optional
+            Number of frames to keep in a batch
+            Higher number indicates more memory usage but faster execution due to lesser number of parts 
+
+        Returns
+        -------
+        None
+            Convert input video and save to disk
+        """
+        # Generate some random unique identifier that is generated for each session for the temporary files.
+        uid = uuid.uuid4()
+        palette = list(self.PALETTE_DATA.values())
+
+        _output = _input.split('.')[0] + str(uid) +'_converted.mp4'
+        # run once to generate the color map file
+        try:
+            # for all colors (256*256*256) assign color from palette
+            precalculated = np.load(f'{palette_name}.npz')['color_cube']
+        except:
+            pl.generate_color_map(palette, palette_name)
+            precalculated = np.load(f'{palette_name}.npz')['color_cube']
+
+        # Initialize variables for conversion
+        width, height, framerate, duration, total_frames = self.get_video_information(_input)
+
+        frames_per_batch = _frames_per_batch
+        frame_number = 0
+        timestamp = 0
+        batch_dur = frames_per_batch / framerate
+        batch_dur = batch_dur if duration > batch_dur else duration
+
+        # Process the entire video in batches of `frames_per_batch` frames
+        while frame_number < total_frames:
+            np_arr = self.convert_vid_to_np_arr(_input, width, height, timestamp, batch_dur)
+            if os.path.exists(_output):
+                self.vidwrite(f'temp_{uid}.mp4', precalculated, np_arr, framerate, frame_number, total_frames)
+                self.concat_video(uid, _output)
+            else:
+                self.vidwrite(_output, precalculated, np_arr, framerate, frame_number, total_frames)
+            if (total_frames - frame_number) < frames_per_batch:
+                frames_per_batch = total_frames - frame_number
+            frame_number += frames_per_batch
+            duration -= batch_dur
+            timestamp += batch_dur 
+            batch_dur = batch_dur if duration > batch_dur else duration
