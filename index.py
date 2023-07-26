@@ -14,13 +14,16 @@ go_nord.enable_avg_algorithm()
 # go_nord.set_default_nord_palette()
 
 image = go_nord.open_image("images/bn.jpg")
-go_nord.convert_image(image, save_path='images/test.avg.jpg')
+# go_nord.convert_image(image, save_path='images/test.avg.jpg')
 
 # E.g. Resized img no Avg algorithm and less colors
 go_nord.disable_avg_algorithm()
 go_nord.reset_palette()
 go_nord.add_file_to_palette(NordPaletteFile.POLAR_NIGHT)
 go_nord.add_file_to_palette(NordPaletteFile.SNOW_STORM)
+
+output_path = go_nord.convert_video('/Users/thejoin/Downloads/SampleVideo_720x480.mp4', 'custom_palette', save_path='/tmp')
+print(output_path)
 
 image = go_nord.open_image("images/test.jpg")
 resized_img = go_nord.resize_image(image)
