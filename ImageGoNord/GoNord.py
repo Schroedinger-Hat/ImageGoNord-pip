@@ -11,6 +11,7 @@ from PIL import Image, ImageFilter
 import numpy as np
 import ffmpeg
 import uuid
+import shutil
 
 try:
     import importlib.resources as pkg_resources
@@ -577,7 +578,7 @@ class GoNord(object):
         process = (
             ffmpeg
                 .input('pipe:', format='rawvideo', pix_fmt='rgb24', r=framerate, s='{}x{}'.format(width, height))
-                .output(fn, pix_fmt='yuv420p', vcodec=vcodec, loglevel='quiet')
+                .output(fn, pix_fmt='yuv420p', vcodec=vcodec, loglevel='quiet', tune='fastdecode', preset='ultrafast')
                 .overwrite_output()
                 .run_async(pipe_stdin=True)
         )
@@ -590,7 +591,7 @@ class GoNord(object):
         process.stdin.close()
         process.wait()
 
-    def concat_video(self, uid, out):
+    def concat_video(self, uid, out, save_path):
         """
         Concatenate two videos
 
@@ -608,19 +609,46 @@ class GoNord(object):
         """
         
         main = ffmpeg.input(out)
-        temp = ffmpeg.input(f'temp_{uid}.mp4')
+        temp = ffmpeg.input(os.path.join(save_path, f'temp_{uid}.mp4'))
         (
             ffmpeg
             .filter([main, temp],'concat')
-            .output(f'output_{uid}.mp4', pix_fmt='rgb24', loglevel='quiet')
+            .output(os.path.join(save_path, f'output_{uid}.mp4'), pix_fmt='rgb24', loglevel='quiet', tune='fastdecode', preset='ultrafast')
             .overwrite_output()
             .run(capture_stdout=True)
         )
         os.remove(out)
-        os.remove(f'temp_{uid}.mp4')
-        os.rename(f'output_{uid}.mp4', out)
+        os.remove(os.path.join(save_path, f'temp_{uid}.mp4'))
+        os.rename(os.path.join(save_path, f'output_{uid}.mp4'), out)
 
-    def convert_video(self, _input, palette_name, _frames_per_batch = 200):
+    def apply_original_audio(self, _input, _output):
+        """
+        Concatenate two videos
+
+        Parameters
+        ----------
+        _input : str
+            Input video file path
+        _output : str
+            Output video file path
+
+        Returns
+        -------
+        None
+            Apply the original audio to the output video
+        """
+        tmp_filename = '/tmp/' + str(uuid.uuid4())
+        shutil.copyfile(_output, tmp_filename)
+        output_video_stream = ffmpeg.input(tmp_filename).video
+        input_audio_stream = ffmpeg.input(_input).audio
+        (ffmpeg
+          .output(output_video_stream, input_audio_stream, _output, loglevel='quiet', tune='fastdecode', preset='ultrafast')
+          .overwrite_output()
+          .run()
+        )
+        os.remove(tmp_filename)
+
+    def convert_video(self, _input, palette_name, _frames_per_batch = 200, save_path = '/tmp'):
         """
         Concatenate two videos
 
@@ -633,6 +661,8 @@ class GoNord(object):
         _frames_per_batch : int / optional
             Number of frames to keep in a batch
             Higher number indicates more memory usage but faster execution due to lesser number of parts 
+        save_path : str
+            Location where to save the output video
 
         Returns
         -------
@@ -643,7 +673,7 @@ class GoNord(object):
         uid = uuid.uuid4()
         palette = list(self.PALETTE_DATA.values())
 
-        _output = _input.split('.')[0] + str(uid) +'_converted.mp4'
+        _output = os.path.join(save_path, _input.split('.')[0] + str(uid) +'_converted.mp4')
         # run once to generate the color map file
         try:
             # for all colors (256*256*256) assign color from palette
@@ -665,8 +695,8 @@ class GoNord(object):
         while frame_number < total_frames:
             np_arr = self.convert_vid_to_np_arr(_input, width, height, timestamp, batch_dur)
             if os.path.exists(_output):
-                self.vidwrite(f'temp_{uid}.mp4', precalculated, np_arr, framerate, frame_number, total_frames)
-                self.concat_video(uid, _output)
+                self.vidwrite(os.path.join(save_path, f'temp_{uid}.mp4'), precalculated, np_arr, framerate, frame_number, total_frames)
+                self.concat_video(uid, _output, save_path)
             else:
                 self.vidwrite(_output, precalculated, np_arr, framerate, frame_number, total_frames)
             if (total_frames - frame_number) < frames_per_batch:
@@ -675,3 +705,7 @@ class GoNord(object):
             duration -= batch_dur
             timestamp += batch_dur 
             batch_dur = batch_dur if duration > batch_dur else duration
+
+        self.apply_original_audio(_input, _output)
+
+        return _output

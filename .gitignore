@@ -141,6 +141,10 @@ cython_debug/
 .vim/
 *.sw*
 
+# Miscellaneous
+.DS_Store
+custom_palette.npz
+
 # Testing images
 images/*resized*
 images/*avg*
