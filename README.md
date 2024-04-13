@@ -1,35 +1,24 @@
-# ImageGoNord - RGB image to Nordtheme palette
+# ImageGoNord - RGB image and video to any kind of palette or theme
 
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/image-go-nord)
 [![PyPI](https://img.shields.io/pypi/v/image-go-nord)](https://pypi.org/project/image-go-nord/)
 [![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/Schrodinger-Hat/ImageGoNord-pip/blob/master/LICENSE)
 [![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/image-go-nord)
 
-A tool that can convert your rgb images to nordtheme palette.
+A tool that can convert your rgb images to nordtheme, gruvbox, catpuccin and many more palettes.
+Video included.
 
-This repository is a python package that can convert any sort of image into a [nordtheme](https://github.com/arcticicestudio/nord) palette image.
+This repository is a python package.
 
 You can find a demo on [the website](https://ign.schrodinger-hat.it) for testing out the package.
-
-We build also a little API hosted on Heroku to give to anyone the change to test it out by theirself. You can find the documentation on the website too.
-
 The main repository of this whole project is [ImageGoNord](https://github.com/Schrodinger-Hat/ImageGoNord).
+
+It's including an API layer, in case you'd like to set it up also for your project.
 
 ### Documentation
 
 You can find the [documentation into this repository](https://github.com/Schrodinger-Hat/ImageGoNord-pip/tree/master/docs) and also on the website.
-
-<!--
-@TODO
-- Describe very briefly but clearly what the project does.
-- State if it is out-of-the-box user-friendly, so it’s clear to the user.
-- List its most useful/innovative/noteworthy features.
-- State its goals/what problem(s) it solves.
-- Note and briefly describe any key concepts (technical, philosophical, or both) important to the user’s understanding.
-- Link to any supplementary blog posts or project main pages.
-- Note its development status.
-- If possible, include screenshots and demo videos.
--->
+If you have any questions, please reach us at us@schrodinger-hat.it
 
 ### Inspiration
 
@@ -41,6 +30,8 @@ Our goal is to make a shortcut to convert anything into this theme, by starting 
 <br>An example could be an awesome wallpaper converted into the Nordtheme palette.
 
 We checked the commnunity and we did not find anything similar or any project that can accomplish this task. So, here we are.
+
+Of course, we resolved the issue for any kind of palette, theme and it's video supported.
 
 ### What you can do with this package
 
@@ -66,6 +57,44 @@ You can convert any image into the nord palette (or others). Here are some examp
 **Processed with avg algorithm**
 
 [![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)
+
+
+### ImageGoNord with AI - PaletteNet
+
+We implemented the PaletteNet model with PyTorch based on [this implementation](https://github.com/AakritiKinra/PaletteNet-Implementation).
+Inside that repository you could find the paper, in case you'd like to develop and train your model.
+
+There is a lot of room for improvement as the shape of the input is reduced to only 6 colors.
+
+Here are some results that you could compare with other. On our point of view, AI model it seems working great with wallpaper.
+
+**Original**
+
+[![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)
+
+**AI processed - Aurora palette from Nordtheme**
+
+[![Converted](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-ai-aurora.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-profile-ai-aurora.jpg)
+
+-----
+
+**Original**
+
+[![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/sh.png)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/sh.png)
+
+**AI processed - Nordtheme**
+
+[![Converted](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-sh-ai.png)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-sh-ai.png)
+
+-----
+
+**Original**
+
+[![Original](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/valley.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/valley.jpg)
+
+**AI processed - Nordtheme**
+
+[![Converted](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-valley-ai.jpg)](https://raw.githubusercontent.com/Schrodinger-Hat/ImageGoNord-pip/master/images/test-valley-ai.jpg)
 
 -----
 
@@ -101,21 +130,10 @@ Then you can use [some example](https://github.com/Schrodinger-Hat/ImageGoNord-p
 - Follow the code style / requirements
 - Format for commit messages
 
-### TODO
-- Testing
-- Improvements on image quality and supporting any image format
-- Make contributing guidelines
-
 # Authors
 
 [TheJoin95](https://github.com/TheJoin95) & [Wabri](https://github.com/Wabri)
 
-**NOTE**: we are not (yet) affiliated with the Nordtheme or [Arcticicestudio](https://github.com/arcticicestudio).
-
-# Credits
-
-[Nordtheme](https://www.nordtheme.com/)
-
 ### License
 
-[MIT license](https://github.com/Schrodinger-Hat/ImageGoNord-pip/blob/master/LICENSE)
+[AGPLv3 license](https://github.com/Schrodinger-Hat/ImageGoNord-pip/blob/master/LICENSE)

@@ -13,17 +13,21 @@ go_nord.enable_avg_algorithm()
 # go_nord.add_color_to_palette('#FF0000')
 # go_nord.set_default_nord_palette()
 
-image = go_nord.open_image("images/bn.jpg")
-# go_nord.convert_image(image, save_path='images/test.avg.jpg')
+image = go_nord.open_image("images/valley.jpg")
+# go_nord.convert_image(image, save_path='images/test-valley-avg.jpg')
 
 # E.g. Resized img no Avg algorithm and less colors
 go_nord.disable_avg_algorithm()
-go_nord.reset_palette()
-go_nord.add_file_to_palette(NordPaletteFile.POLAR_NIGHT)
-go_nord.add_file_to_palette(NordPaletteFile.SNOW_STORM)
+# go_nord.reset_palette()
+# go_nord.add_file_to_palette(NordPaletteFile.AURORA)
+# go_nord.add_file_to_palette(NordPaletteFile.FROST)
 
-output_path = go_nord.convert_video('/Users/thejoin/Downloads/SampleVideo_720x480.mp4', 'custom_palette', save_path='/tmp')
+# image = go_nord.open_image("images/valley.jpg")
+# go_nord.convert_image(image, save_path="images/test-valley-ai.jpg", use_model=True)
+
+output_path = go_nord.convert_video('videos/SampleVideo_720x480.mp4', 'custom_palette', save_path='videos/SampleVideo_converted.mp4')
 print(output_path)
+exit()
 
 image = go_nord.open_image("images/test.jpg")
 resized_img = go_nord.resize_image(image)

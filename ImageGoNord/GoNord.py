@@ -13,6 +13,12 @@ import ffmpeg
 import uuid
 import shutil
 
+import torch
+import skimage.io as io
+import skimage.color as convertor
+import torchvision.transforms as transforms
+
+
 try:
     import importlib.resources as pkg_resources
 except ImportError:
@@ -20,10 +26,12 @@ except ImportError:
     import importlib_resources as pkg_resources
 
 from .palettes import Nord as nord_palette
+from .models import PaletteNet as palette_net
 
 from ImageGoNord.utility.quantize import quantize_to_palette
 import ImageGoNord.utility.palette_loader as pl
 from ImageGoNord.utility.ConvertUtility import ConvertUtility
+from ImageGoNord.utility.model import FeatureEncoder,RecoloringDecoder
 
 
 class NordPaletteFile:
@@ -417,7 +425,70 @@ class GoNord(object):
                 pixels[row, col] = tuple(colors_list)
         return pixels
 
-    def convert_image(self, image, save_path='', parallel_threading=False):
+    def convert_image_by_model(self, image, use_model_cpu=False):
+        """
+        Process a Pillow image by using a PyTorch model "PaletteNet" for recoloring the image
+
+        Parameters
+        ----------
+        image : pillow image
+            The source pillow image
+        use_model_cpu : bool, optional
+            true if using cpu power
+
+        Returns
+        -------
+        pillow image
+            processed image
+        """
+        FE = FeatureEncoder() # torch.Size([64, 3, 3, 3])
+        RD = RecoloringDecoder() # torch.Size([530, 256, 3, 3])
+
+        FE.load_state_dict(torch.load(pkg_resources.open_binary(palette_net, "FE.state_dict.pt")))
+        RD.load_state_dict(torch.load(pkg_resources.open_binary(palette_net, "RD.state_dict.pt")))
+
+        if use_model_cpu:
+            FE.to("cpu")
+            RD.to("cpu")
+
+        lab_image = ((convertor.rgb2lab(np.array(image))) - [50,0,0] ) / [50,127,127]
+
+        img = torch.Tensor(lab_image).permute(2,0,1)
+
+        h = 16*int(img.shape[1]/16)
+        w = 16*int(img.shape[2]/16)
+
+        T = transforms.Resize((h,w))
+
+        img = T(img)
+        img = img.unsqueeze(0)
+        palette = []
+        for hex, rgb_value in self.PALETTE_DATA.items():
+            a = []
+            for j in [2,4,6]:
+                a.append(int(hex[j-2:j],16))
+            palette.append(a)
+
+        try:
+            pal_np = np.array(palette).reshape(1,6,3)/255
+        except:
+            print("You have too many colors in your palette for the model. Auto reducing the array. It's limited at 6 colors, now you have: ", len(palette))
+            pal_np = np.array(palette[0:6]).reshape(1,6,3)/255
+
+        pal = torch.Tensor((convertor.rgb2lab(pal_np) - [50,0,0] ) / [50,128,128]).unsqueeze(0)
+
+        image = img
+        palette = pal
+        illu = image[:,0:1,:,:]
+
+        with torch.no_grad():
+            c1,c2,c3,c4 = FE(image)
+            out = RD(c1, c2, c3, c4, palette, illu)
+            final_image = torch.cat([(illu+1)*50, out*128],axis = 1).permute(0,2,3,1)[0]
+            # need to convert float value returning in skimage to 0-255 range values for pillow (computer vision / training lib vs pixel operation lib)
+            return Image.fromarray((convertor.lab2rgb(final_image) * 255).astype(np.uint8))
+
+    def convert_image(self, image, save_path='', use_model=False, use_model_cpu=False, parallel_threading=False):
         """
         Process a Pillow image by replacing pixel or by avg algorithm
 
@@ -427,6 +498,12 @@ class GoNord(object):
             The source pillow image
         save_path : str, optional
             the path and the filename where to save the image
+        use_model : bool, optional
+            true if using ai model
+        use_model_cpu : bool, optional
+            true if using cpu power
+        parallel_threading : bool, optional
+            true to enable multi-thread conversion loop
 
         Returns
         -------
@@ -439,20 +516,24 @@ class GoNord(object):
         original_image.close()
         pixels = self.load_pixel_image(image)
         is_rgba = (image.mode == 'RGBA')
-        if (parallel_threading == False):
-            self.converted_loop(is_rgba, pixels, original_pixels, image.size[0], image.size[1])
-        else:
-            step = ceil(image.size[0] / self.MAX_THREADS)
-            threads = []
-            for row in range(step, image.size[0] + step, step):
-                args = (is_rgba, pixels, original_pixels, row, image.size[1], row - step, 0)
-                t = threading.Thread(target=self.converted_loop, args=args)
-                t.daemon = True
-                t.start()
-                threads.append(t)
 
-            for t in threads:
-                t.join(timeout=30)
+        if (use_model):
+            image = self.convert_image_by_model(image, use_model_cpu)
+        else:
+            if (parallel_threading == False):
+                self.converted_loop(is_rgba, pixels, original_pixels, image.size[0], image.size[1])
+            else:
+                step = ceil(image.size[0] / self.MAX_THREADS)
+                threads = []
+                for row in range(step, image.size[0] + step, step):
+                    args = (is_rgba, pixels, original_pixels, row, image.size[1], row - step, 0)
+                    t = threading.Thread(target=self.converted_loop, args=args)
+                    t.daemon = True
+                    t.start()
+                    threads.append(t)
+
+                for t in threads:
+                    t.join(timeout=30)
 
         if (self.USE_GAUSSIAN_BLUR == True):
             image = image.filter(ImageFilter.GaussianBlur(1))
