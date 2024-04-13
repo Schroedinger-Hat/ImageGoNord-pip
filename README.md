@@ -24,9 +24,7 @@ If you have any questions, please reach us at us@schrodinger-hat.it
 
 We are in love with Nordtheme, that is why we created this repository.
 
-[![Nord Color Palette Overview](https://raw.githubusercontent.com/arcticicestudio/nord-docs/develop/assets/images/nord/repository-color-palettes.svg?sanitize=true)](https://www.nordtheme.com/docs/colors-and-palettes)
-
-Our goal is to make a shortcut to convert anything into this theme, by starting from the images.
+Our goal is to make a shortcut to convert anything into any kind of themes, by starting from the images and going to videos.
 <br>An example could be an awesome wallpaper converted into the Nordtheme palette.
 
 We checked the commnunity and we did not find anything similar or any project that can accomplish this task. So, here we are.
