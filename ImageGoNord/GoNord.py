@@ -517,7 +517,7 @@ class GoNord(object):
         pixels = self.load_pixel_image(image)
         is_rgba = (image.mode == 'RGBA')
 
-        if (use_model):
+        if use_model:
             image = self.convert_image_by_model(image, use_model_cpu)
         else:
             if not parallel_threading:
