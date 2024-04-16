@@ -520,7 +520,7 @@ class GoNord(object):
         if (use_model):
             image = self.convert_image_by_model(image, use_model_cpu)
         else:
-            if (parallel_threading == False):
+            if not parallel_threading:
                 self.converted_loop(is_rgba, pixels, original_pixels, image.size[0], image.size[1])
             else:
                 step = ceil(image.size[0] / self.MAX_THREADS)
