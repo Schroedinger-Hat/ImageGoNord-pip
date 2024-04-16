@@ -472,7 +472,7 @@ class GoNord(object):
         try:
             pal_np = np.array(palette).reshape(1,6,3)/255
         except:
-            print("You have too many colors in your palette for the model. Auto reducing the array. It's limited at 6 colors, now you have: ", len(palette))
+            print("You have too many colors in your palette for the model, this feature is limited to 6 colours, now you have: ", len(palette), "! I'll take the first 6!")
             pal_np = np.array(palette[0:6]).reshape(1,6,3)/255
 
         pal = torch.Tensor((convertor.rgb2lab(pal_np) - [50,0,0] ) / [50,128,128]).unsqueeze(0)
