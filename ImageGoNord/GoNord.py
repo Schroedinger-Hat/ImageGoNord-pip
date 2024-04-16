@@ -535,7 +535,7 @@ class GoNord(object):
                 for t in threads:
                     t.join(timeout=30)
 
-        if (self.USE_GAUSSIAN_BLUR == True):
+        if self.USE_GAUSSIAN_BLUR:
             image = image.filter(ImageFilter.GaussianBlur(1))
 
         if (save_path != ''):
