@@ -22,8 +22,7 @@ setup(
         'Topic :: Software Development :: Build Tools',
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "ENVIRONMENT :: GPU"
+        "Programming Language :: Python :: 3.7"
     ],
     project_urls={
         "Homepage": "https://ign.schrodinger-hat.it",
