@@ -6,7 +6,7 @@ README = (ROOT / "README.md").read_text()
 
 setup(
     name="image-go-nord",
-    version="1.0.1",
+    version="1.0.2",
     description="A tool to convert any RGB image or video to any theme or color palette input by the user",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -32,6 +32,6 @@ setup(
     packages=find_packages(),
     package_data={'': ['*.txt', 'palettes/*.txt', 'models/*.pt', '*.pt', '*.state_dict.*']},
     include_package_data=True,
-    install_requires=["Pillow", "ffmpeg-python", "numpy", "torch", "skimage", "torchvision"],
+    install_requires=["Pillow", "ffmpeg-python", "numpy", "torch", "scikit-image", "torchvision"],
     python_requires=">=3.5"
 )
