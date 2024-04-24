@@ -12,11 +12,14 @@ import numpy as np
 import ffmpeg
 import uuid
 import shutil
+import requests
 
-import torch
-import skimage.io as io
-import skimage.color as convertor
-import torchvision.transforms as transforms
+try:
+    import torch
+    import skimage.color as convertor
+    import torchvision.transforms as transforms
+except ImportError:
+    print("Please install the dependencies required for the AI feature")
 
 
 try:
@@ -31,7 +34,11 @@ from .models import PaletteNet as palette_net
 from ImageGoNord.utility.quantize import quantize_to_palette
 import ImageGoNord.utility.palette_loader as pl
 from ImageGoNord.utility.ConvertUtility import ConvertUtility
-from ImageGoNord.utility.model import FeatureEncoder,RecoloringDecoder
+
+try:
+    from ImageGoNord.utility.model import FeatureEncoder,RecoloringDecoder
+except ImportError:
+    print("Please install the dependencies required for the AI feature")
 
 
 class NordPaletteFile:
@@ -157,6 +164,8 @@ class GoNord(object):
     AVG_BOX_DATA = {"w": -2, "h": 3}
     TRANSPARENCY_TOLERANCE = 190
     MAX_THREADS = 10
+
+    PALETTE_NET_REPO_FOLDER = 'https://github.com/Schrodinger-Hat/ImageGoNord-pip/raw/master/ImageGoNord/models/PaletteNet/'
 
     AVAILABLE_PALETTE = []
     PALETTE_DATA = {}
@@ -425,6 +434,16 @@ class GoNord(object):
                 pixels[row, col] = tuple(colors_list)
         return pixels
 
+    def load_and_save_models(self):
+        rd_model = requests.get(self.PALETTE_NET_REPO_FOLDER + 'RD.state_dict.pt')
+        fe_model = requests.get(self.PALETTE_NET_REPO_FOLDER + 'FE.state_dict.pt')
+
+        with open(os.path.dirname(palette_net.__file__) + '/FE.state_dict.pt', "wb") as f:
+            f.write(fe_model.content)
+        
+        with open(os.path.dirname(palette_net.__file__) + '/RD.state_dict.pt', "wb") as f:
+            f.write(rd_model.content)
+
     def convert_image_by_model(self, image, use_model_cpu=False):
         """
         Process a Pillow image by using a PyTorch model "PaletteNet" for recoloring the image
@@ -444,8 +463,14 @@ class GoNord(object):
         FE = FeatureEncoder() # torch.Size([64, 3, 3, 3])
         RD = RecoloringDecoder() # torch.Size([530, 256, 3, 3])
 
-        FE.load_state_dict(torch.load(pkg_resources.open_binary(palette_net, "FE.state_dict.pt")))
-        RD.load_state_dict(torch.load(pkg_resources.open_binary(palette_net, "RD.state_dict.pt")))
+        if (
+            os.path.exists(os.path.dirname(palette_net.__file__) + '/FE.state_dict.pt')
+            and os.path.exists(os.path.dirname(palette_net.__file__) + '/RD.state_dict.pt')
+        ):
+            FE.load_state_dict(torch.load(pkg_resources.open_binary(palette_net, "FE.state_dict.pt")))
+            RD.load_state_dict(torch.load(pkg_resources.open_binary(palette_net, "RD.state_dict.pt")))
+        else:
+            self.load_and_save_models()
 
         if use_model_cpu:
             FE.to("cpu")
@@ -472,7 +497,8 @@ class GoNord(object):
         try:
             pal_np = np.array(palette).reshape(1,6,3)/255
         except:
-            print("You have too many colors in your palette for the model, this feature is limited to 6 colours, now you have: ", len(palette), "! I'll take the first 6!")
+            # this feature is limited to 6 colours
+            # we're taking the first six
             pal_np = np.array(palette[0:6]).reshape(1,6,3)/255
 
         pal = torch.Tensor((convertor.rgb2lab(pal_np) - [50,0,0] ) / [50,128,128]).unsqueeze(0)
@@ -517,7 +543,7 @@ class GoNord(object):
         pixels = self.load_pixel_image(image)
         is_rgba = (image.mode == 'RGBA')
 
-        if use_model:
+        if use_model and torch != None:
             image = self.convert_image_by_model(image, use_model_cpu)
         else:
             if not parallel_threading:
