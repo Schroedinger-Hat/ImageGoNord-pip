@@ -22,12 +22,10 @@ go_nord.disable_avg_algorithm()
 # go_nord.add_file_to_palette(NordPaletteFile.AURORA)
 # go_nord.add_file_to_palette(NordPaletteFile.FROST)
 
-# image = go_nord.open_image("images/valley.jpg")
-# go_nord.convert_image(image, save_path="images/test-valley-ai.jpg", use_model=True)
-
-output_path = go_nord.convert_video('videos/SampleVideo_720x480.mp4', 'custom_palette', save_path='videos/SampleVideo_converted.mp4')
-print(output_path)
+image = go_nord.open_image("images/valley.jpg")
+go_nord.convert_image(image, save_path="images/test-valley-ai.jpg", use_model=True)
 exit()
+# output_path = go_nord.convert_video('videos/SampleVideo_720x480.mp4', 'custom_palette', save_path='videos/SampleVideo_converted.mp4')
 
 image = go_nord.open_image("images/test.jpg")
 resized_img = go_nord.resize_image(image)
