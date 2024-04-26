@@ -19,7 +19,8 @@ try:
     import skimage.color as convertor
     import torchvision.transforms as transforms
 except ImportError:
-    print("Please install the dependencies required for the AI feature")
+    # AI feature disabled
+    pass
 
 
 try:
@@ -38,7 +39,8 @@ from ImageGoNord.utility.ConvertUtility import ConvertUtility
 try:
     from ImageGoNord.utility.model import FeatureEncoder,RecoloringDecoder
 except ImportError:
-    print("Please install the dependencies required for the AI feature")
+    # AI feature disabled
+    pass
 
 
 class NordPaletteFile:
@@ -543,8 +545,11 @@ class GoNord(object):
         pixels = self.load_pixel_image(image)
         is_rgba = (image.mode == 'RGBA')
 
-        if use_model and torch != None:
-            image = self.convert_image_by_model(image, use_model_cpu)
+        if use_model:
+            if torch != None:
+                image = self.convert_image_by_model(image, use_model_cpu)
+            else:
+                print('Please install the dependencies required for the AI feature: pip install image-go-nord[AI]')
         else:
             if not parallel_threading:
                 self.converted_loop(is_rgba, pixels, original_pixels, image.size[0], image.size[1])
