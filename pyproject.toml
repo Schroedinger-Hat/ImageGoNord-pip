@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name="image-go-nord"
+dynamic = [
+    "version",
+]
+authors = [
+    {name = "Schrodinger Hat", email = "schrodinger.hat.show@gmail.com"},
+]
+description = "A tool to convert any RGB image or video to any theme or color palette input by the user"
+readme = "README.md"
+license = {text = "AGPL-3.0"}
+requires-python = ">=3.5"
+keywords = [
+    'nordtheme',
+    'pillow',
+    'image',
+    'conversion',
+    'rgb',
+    'color-scheme',
+    'color-palette',
+    'linux-rice',
+    'gruvbox',
+    'catpuccin'
+]
+
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Topic :: Software Development :: Build Tools',
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+]
+dependencies = [
+    "wheel",
+    "setuptools",
+    "Pillow",
+    "ffmpeg-python",
+    "numpy",
+    "requests"
+]
+
+[project.urls]
+Homepage = "https://ign.schrodinger-hat.it"
+Documentation = "https://ign.schrodinger-hat.it/documentation"
+Repository = "https://github.com/Schroedinger-Hat/ImageGoNord-pip.git"
+Issues = "https://github.com/Schrodinger-Hat/ImageGoNord-pip/issues"
+Changelog = "https://github.com/Schroedinger-Hat/ImageGoNord-pip/blob/master/CHANGELOG.md"
+Download='https://github.com/Schrodinger-Hat/ImageGoNord-pip/releases'
+
+[project.optional-dependencies]
+tests = [
+    'coverage',
+    'unittest',
+    'discover',
+    "setuptools",
+    "wheel",
+]
+AI=  [
+    "torch",
+    "scikit-image",
+    "torchvision"
+]
+
+
+[tool.setuptools]
+include-package-data = true
+packages = [
+    "ImageGoNord",
+    "ImageGoNord.models",
+    "ImageGoNord.models.PaletteNet",
+    "ImageGoNord.palettes",
+    "ImageGoNord.palettes.Nord",
+    "ImageGoNord.utility",
+]
+
+[tool.setuptools.package-data]
+"*" = ["*.txt", "*.pt"]
+
+
+[project.scripts]
+image-go-nord = "ImageGoNord.__main__:main"
+
