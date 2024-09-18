@@ -63,6 +63,7 @@ parser_image_go_nord.add_argument(
     "--add",
     dest="add",
     action="append",
+    default=[],
     help="Add color also by hex code ex: '#FF0000' or name ex: 'POLAR_NIGHT', 'SNOW_STORM', it option "
     "can be call more of one time",
 )
@@ -101,9 +102,10 @@ class ImageGoNordCLI:
         self.__source = None
         self.source = kwargs.get("source", None)
 
+        self.target_directory_to_create = None
+
         self.__target = None
         self.target = kwargs.get("target", None)
-
 
 
     @property
@@ -112,7 +114,7 @@ class ImageGoNordCLI:
 
     @source.setter
     def source(self, value):
-        if value:
+        if isinstance(value, list):
             source_list = []
             for src in value:
                 # Reset src_to_use value each iteration
@@ -131,47 +133,73 @@ class ImageGoNordCLI:
                 ):
                     continue
 
+                # Links and dead links is supported
+                src_to_use = self.lookup_file(src_to_use)
+
                 # That is a file
-                if os.path.isfile(src_to_use) and src_to_use not in source_list:
-                    source_list.append(src_to_use)
+                if os.path.isfile(src_to_use):
+                    if self.lookup_file_supported_input_format(src_to_use):
+                        if src_to_use and src_to_use not in source_list:
+                            source_list.append(src_to_use)
 
                 # That is a directory
                 elif os.path.isdir(src_to_use):
 
-                    # Check recursively
+                    # Check recursively for supported input file
                     for root, dirs, files in os.walk(src_to_use):
                         for file in files:
-                            # Match each file PIL input image format by extension name
-                            for extension in [
-                                "gif",
-                                "GIF",
-                                "Gif",
-                                "jpg",
-                                "JPG",
-                                "Jpg",
-                                "jpeg",
-                                "JPEG",
-                                "Jpeg",
-                                "png",
-                                "PNG",
-                                "Png",
-                                "bmp",
-                                "BMP",
-                                "Bmp",
-                                "tiff",
-                                "TIFF",
-                                "Tif",
-                                "blp",
-                                "BLP",
-                                "Blp",
-                            ]:
-                                if file.endswith(extension) and os.path.join(root, file) not in source_list:
+                            if self.lookup_file_supported_input_format(file):
+                                if os.path.join(root, file) not in source_list:
                                     source_list.append(os.path.join(root, file))
 
             if self.source != source_list:
                 self.__source = source_list
         else:
-            self.__source = None
+            self.__source = []
+
+    @property
+    def target(self):
+        return self.__target
+
+    @target.setter
+    def target(self, value):
+        if isinstance(value, str):
+
+            if os.path.exists(value):
+                value = self.lookup_file(value)
+            else:
+                value = os.path.abspath(value)
+
+            if len(self.source) > 1 and  not os.path.exists(value):
+                    self.target_directory_to_create = value
+
+        if self.target != value:
+            self.__target = value
+
+    @staticmethod
+    def lookup_file(path):
+        if os.path.islink(path):
+            while os.path.islink(path):
+                path = os.readlink(path)
+        if os.path.exists(path):
+            return os.path.realpath(path)
+        return None
+
+    @staticmethod
+    def lookup_file_supported_input_format(path):
+        f_name, f_ext = os.path.splitext(os.path.basename(path).split("/")[-1])
+        # Match each file PIL input image format by extension name
+        if f_ext.lower()[1:] in [
+            "gif",
+            "jpg",
+            "jpeg",
+            "png",
+            "bmp",
+            "tiff",
+            "blp",
+        ]:
+            return True
+        return False
 
     def print_summary(self):
         sys.stdout.write(
@@ -182,33 +210,55 @@ class ImageGoNordCLI:
             f"Quantize: {self.quantize}\n"
             f"Base64: {self.base64}\n"
             f"Reset Palette: {self.reset_palette}\n"
-            f"Add color: {self.add}\n"
-            
-            f"\n"
         )
 
-        if len(self.source) > 1:
-            target_type = "directory"
-            target_add_slash = "/"
-            sys.stdout.write(f"Source files:\n")
-            for source in self.source:
-                sys.stdout.write(f"{source}\n")
-        elif len(self.source) == 1:
-            target_type = "file"
-            target_add_slash = ""
-            sys.stdout.write(f"Source file: {self.source[0]}\n")
+        # Palette
+        # colors from add
+        sys.stdout.write("Add color: ")
+        if self.add:
+            sys.stdout.write("\n")
+            for add in self.add:
+                sys.stdout.write(f"{add}\n")
         else:
-            target_type = "FILE"
-            target_add_slash = ""
-            sys.stdout.write(f"Source: None\n")
-        sys.stdout.write(
-            f"\n"
-            f"Target {target_type}: {self.target[0]}{target_add_slash}\n"
-            f"\n"
-            f"{"".center(os.get_terminal_size().columns, "-")}\n"
-        )
-        sys.stdout.flush()
+            sys.stdout.write("None\n")
 
+        # colors from go_nord point of view
+        sys.stdout.write(f"Color{'s' if len(self.source)>1 else ''}: ")
+        if self.go_nord.get_palette_data():
+            sys.stdout.write("\n")
+            for hex16, rgb in self.go_nord.get_palette_data().items():
+                sys.stdout.write(f"\tHex: #{hex16}, RGB: ({rgb[0]},{rgb[1]},{rgb[2]})\n")
+        else:
+            sys.stdout.write("None\n")
+
+        # source
+        sys.stdout.write(f"Source{'s' if len(self.source) > 1 else ''}:")
+        if len(self.source) > 1:
+            sys.stdout.write("\n")
+            for source in self.source:
+                sys.stdout.write(f"\t{source}\n")
+        elif len(self.source) == 1:
+            sys.stdout.write(f" {self.source[0]}\n")
+        else:
+            sys.stdout.write(f" None\n")
+
+        # target
+        if len(self.source)>1:
+            sys.stdout.write(
+                f"Target directory: {self.target}/\n"
+            )
+        else:
+            sys.stdout.write(
+                f"Target file: {self.target}\n"
+            )
+        if self.target_directory_to_create:
+            sys.stdout.write(
+                f"Target directory to create: {self.target_directory_to_create}\n"
+            )
+
+        # footer
+        sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "-")}\n")
+        sys.stdout.flush()
 
     def pre_processing_palette(self):
         # --reset-palette
@@ -220,11 +270,25 @@ class ImageGoNordCLI:
 
             # You can add color also by their hex code
             if f"{color}".startswith("#") and len(f"{color}") == 7:
-                self.go_nord.add_color_to_palette('#FF0000')
+                self.go_nord.add_color_to_palette(color)
+
+            # Here we can consider the name is a path of a filename to load
+            if os.access(color, os.F_OK, follow_symlinks=True):
+                with open(color) as file_to_import:
+                    for line in file_to_import:
+                        if f"{line}".startswith("#") and len(f"{line}".strip()) == 7:
+                            self.go_nord.add_color_to_palette(f"{line}".strip())
 
             # You can add color also by their name
             if f"{color}" in ["AURORA", "FROST", "POLAR_NIGHT", "SNOW_STORM"]:
                 self.go_nord.add_file_to_palette(getattr(NordPaletteFile, f"{color}"))
+
+        # The end of the world
+        if len(self.go_nord.get_palette_data()) == 0:
+            sys.stdout.write("No color is load at all\n")
+            return 1
+
+        return 0
 
     def pre_processing(self):
         # --avg
@@ -239,13 +303,13 @@ class ImageGoNordCLI:
         else:
             self.go_nord.disable_gaussian_blur()
 
-    def ask_to_confinue(self):
-        if self.interactive:
-            if not input("do you want to continue ? (Y/n)").upper().startswith("Y"):
-                return False
-            return True
+    def ask_to_continue(self, text, startswith):
+        if self.interactive and input(f"{text}").upper().startswith(f"{startswith}"):
+                return True
+        return False
 
     def processing(self):
+
         pass
         # process
         # for image in self.source:
@@ -267,11 +331,14 @@ class ImageGoNordCLI:
         pass
 
     def run(self):
-        self.pre_processing_palette()
+        if self.pre_processing_palette():
+            return 1
+
         self.pre_processing()
         self.print_summary()
-        if not self.ask_to_confinue():
+        if not self.ask_to_continue("Do you want to continue ? (Y/n)", "Y"):
             return 0
+        print("We continue")
         self.processing()
         self.post_processing()
 
@@ -340,7 +407,7 @@ def main():
         add=args.add,
         interactive=args.interactive,
         source=args.source,
-        target=args.target,
+        target=args.target[0],
     )
     return cli.run()
 
