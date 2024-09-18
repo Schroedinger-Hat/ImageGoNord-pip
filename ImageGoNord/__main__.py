@@ -14,7 +14,8 @@ from ImageGoNord import GoNord
 parser_image_go_nord = argparse.ArgumentParser(
     prog="image-go-nord",
     add_help=True,
-    description="A tool to convert any RGB image or video to any theme or color palette input by the user",
+    description="A tool to convert any RGB image or video to any theme or color palette input by the user. "
+                "By default the algorithm is pixel-by-pixel",
 )
 
 parser_image_go_nord.add_argument(
@@ -22,7 +23,7 @@ parser_image_go_nord.add_argument(
     dest="avg",
     action="store_true",
     default=False,
-    help="Avg algorithm and less colors it not enable it will use pixel-by-pixel approach",
+    help="enable avg algorithm and less colors it not enable it will use pixel-by-pixel approach",
 )
 
 parser_image_go_nord.add_argument(
@@ -30,7 +31,7 @@ parser_image_go_nord.add_argument(
     dest="ai",
     action="store_true",
     default=False,
-    help="Process image by using a PyTorch model 'PaletteNet' for recoloring the image",
+    help="process image by using a PyTorch model 'PaletteNet' for recoloring the image, note that disable pixel-by-pixel and avg algorithms",
 )
 
 parser_image_go_nord.add_argument(
@@ -38,7 +39,7 @@ parser_image_go_nord.add_argument(
     dest="blur",
     action="store_true",
     default=False,
-    help="Enable blur",
+    help="enable blur",
 )
 
 parser_image_go_nord.add_argument(
@@ -46,8 +47,16 @@ parser_image_go_nord.add_argument(
     dest="quantize",
     action="store_true",
     default=False,
-    help="Enable quantization digital image processing. That reduces the number of distinct colors in "
+    help="enable quantization digital image processing, that reduces the number of distinct colors in "
     "an image while maintaining its overall visual quality.",
+)
+
+parser_image_go_nord.add_argument(
+    "--base64",
+    dest="base64",
+    action="store_true",
+    default=False,
+    help="enable base64 convertion during processing phase",
 )
 
 parser_image_go_nord.add_argument(
@@ -57,15 +66,7 @@ parser_image_go_nord.add_argument(
     type=int,
     metavar=("WEIGHT", "HEIGHT"),
     default=None,
-    help="Resize the image during preprocessing phase",
-)
-
-parser_image_go_nord.add_argument(
-    "--base64",
-    dest="base64",
-    action="store_true",
-    default=False,
-    help="Enable base64 convertion",
+    help="resize the image during pre-processing phase",
 )
 
 parser_image_go_nord.add_argument(
@@ -73,7 +74,7 @@ parser_image_go_nord.add_argument(
     dest="reset_palette",
     action="store_true",
     default=False,
-    help="Rest the palette to zero color, you can add colors with multiple --add call",
+    help="reset the palette to zero color, you can add colors with multiple --add ADD calls",
 )
 
 parser_image_go_nord.add_argument(
@@ -81,9 +82,9 @@ parser_image_go_nord.add_argument(
     dest="add",
     action="append",
     default=[],
-    help="Add color also by hex code ex: '#FF0000' or name ex: 'POLAR_NIGHT', 'SNOW_STORM'. "
-         "Note it can be a file path it contain you palette color, one hexadecimal base 16 peer line ex: #FFFFFF ."
-         "--add can be call more of one time",
+    help="add color by hex16 code '#FF0000', name: 'AURORA', 'FROST', 'POLAR_NIGHT', 'SNOW_STORM' "
+         "or an existing file path it contain a color palette, one hex base 16 peer line ex: #FFFFFF . "
+         "note: --add ADD can be call more of one time, no trouble to mixe them",
 )
 
 parser_image_go_nord.add_argument(
@@ -91,21 +92,37 @@ parser_image_go_nord.add_argument(
     dest="interactive",
     action="store_true",
     default=False,
-    help="Write a prompt for confirmation about: start processing, overwrite a existing file or create a target directory",
+    help="write a prompt for confirmation about: start processing, overwrite a existing file, by default no "
+         "questions is asking. note: during prompt if response is 'N', a filename will be found automatically.",
+)
+
+parser_image_go_nord.add_argument(
+    "-y", "--yes",
+    dest="yes",
+    action="store_true",
+    default=False,
+    help="automatically by pass question by confirm with 'Y', that mean yes to continue and yes to "
+         "overwrite existing files, note: by default a it asking question",
 )
 
 parser_image_go_nord.add_argument(
     "source",
     nargs=argparse.ONE_OR_MORE,
     default=None,
-    help="Pathname of a filename or directory, note it should have one source for process something"
+    metavar="SOURCE",
+    help="a pathname of an existing file or directory, note: you can chain source "
+         "like SOURCE [SOURCE ...] in that case TARGET will be consider as directory"
 )
 
 parser_image_go_nord.add_argument(
     "target",
     nargs=1,
     default=None,
-    help="A pathname of an existing or nonexistent file or directory, used for the output when a single file is copied. Note if it finish by '/' or '\\' it will be consider like a directory",
+    metavar="TARGET",
+    help="a pathname of an existing or nonexistent file or directory, note: if nonexistent TARGET "
+         "finish by '/' or '\\' it will be consider as directory and will be create if necessary. "
+         "(no panik if the directory all ready exist it will be use as expected, in that "
+         "case '/' or '\\' is optional)",
 )
 
 
@@ -125,13 +142,13 @@ class ImageGoNordCLI:
         self.size = kwargs.get("size", None)
 
         self.interactive = kwargs.get("interactive", None)
+        self.yes = kwargs.get("yes", None)
+
+        self.target_directory = None
+        self.target_file = None
 
         self.__source = None
         self.source = kwargs.get("source", None)
-
-        self.target_directory_to_create = None
-        self.target_directory = None
-        self.target_file = None
 
         self.__target = None
         self.target = kwargs.get("target", None)
@@ -254,16 +271,38 @@ class ImageGoNordCLI:
             return True
         return False
 
-    @staticmethod
-    def lookup_file_get_next_non_existing_filename(path):
+    def lookup_file_get_next_non_existing_filename(self, path):
         basedir = os.path.dirname(path)
         f_name, f_ext = os.path.splitext(os.path.basename(path).split("/")[-1])
-        if os.path.exists(path):
-            count = 1
-            while os.path.exists(f"{os.path.join(basedir,f_name)}-{count}{f_ext}"):
-                count += 1
-            return f"{os.path.join(basedir,f_name)}-{count}{f_ext}"
-        return path
+
+        if self.interactive is False and self.yes is False:
+            if os.path.exists(path):
+                count = 1
+                while os.path.exists(f"{os.path.join(basedir, f_name)}-{count}{f_ext}"):
+                    count += 1
+                return f"{os.path.join(basedir, f_name)}-{count}{f_ext}"
+        elif self.interactive is True and self.yes is True:
+            return path
+        elif self.interactive is False and self.yes is True:
+            return path
+        elif self.interactive is True and self.yes is False:
+            if os.path.exists(path):
+                if self.ask_to_continue(f"File all ready exist: {path}? (Y/n) "):
+                    return path
+                else:
+                    count = 1
+                    while os.path.exists(f"{os.path.join(basedir, f_name)}-{count}{f_ext}"):
+                        count += 1
+                    return f"{os.path.join(basedir, f_name)}-{count}{f_ext}"
+        else:
+            return path
+
+    @staticmethod
+    def ask_to_continue(text: str, startswith: str = "N"):
+        if not input(f"{text}").upper().startswith(startswith):
+            return True
+        return False
+
 
     def lookup_file_destination(self, src_path):
         """Convert a source path to a valid destination patch"""
@@ -280,15 +319,20 @@ class ImageGoNordCLI:
         return dst_path
 
     def print_summary(self):
+        # setting
         sys.stdout.write(
             f"\n"
             f"{"| IMAGE GO NORD SUMMARY |".center(os.get_terminal_size().columns, "-")}\n"
+            f"Pixel-by-Pixel: {False if self.avg or self.ai else True}\n"
             f"AVG: {self.avg}\n"
+            f"AI: {self.ai}\n"
             f"Blur: {self.blur}\n"
             f"Quantize: {self.quantize}\n"
             f"Base64: {self.base64}\n"
             f"Resize: {self.size}\n"
             f"Reset Palette: {self.reset_palette}\n"
+            f"Interactive: {self.interactive}\n"
+            f"Yes: {self.yes}\n"
         )
 
         # Palette
@@ -324,26 +368,13 @@ class ImageGoNordCLI:
             sys.stdout.write(f" None\n")
 
         # target
-        # if len(self.source) > 1:
-        #     sys.stdout.write(f"Target directory: {self.target}/\n")
-        # elif len(self.source) == 1:
-        #     if os.path.isdir(self.target):
-        #         sys.stdout.write(f"Target directory:")
-        #     elif os.path.isfile(self.target):
-        #         sys.stdout.write(f"Target file:")
-        #     elif not os.path.exists(self.target):
-        #         if self.lookup_file_supported_input_format(self.target):
-        #             sys.stdout.write(f"Target file:")
-        #         else:
-        #             sys.stdout.write(f"Target directory:")
-        #     sys.stdout.write(f" {self.target}\n")
-
         if self.target_directory:
             sys.stdout.write(f"Target directory: {self.target_directory}\n")
         elif self.target_file:
             sys.stdout.write(f"Target file: {self.target_file}\n")
-        for source in self.source:
-            sys.stdout.write(f"{source} -> {self.lookup_file_destination(source)}\n")
+        # for source in self.source:
+        #     sys.stdout.write(f"{source} -> {self.lookup_file_destination(source)}\n")
+
         # footer
         sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "-")}\n")
         sys.stdout.flush()
@@ -391,19 +422,21 @@ class ImageGoNordCLI:
         else:
             self.go_nord.disable_gaussian_blur()
 
-    @staticmethod
-    def ask_to_continue(text: str, startswith: str = "N"):
-        if not input(f"{text}").upper().startswith(startswith):
-            return True
-        return False
-
     def processing(self):
         if self.source:
+            sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "-")}\n")
+            sys.stdout.write("Processing\n")
+            sys.stdout.flush()
             for src_path in self.source:
 
-                # determine destination real path
-                if not os.path.exists(self.target):
-                    os.makedirs(self.target)
+                # create directories if not exist
+                if self.target_directory and not os.path.exists(self.target_directory):
+                    os.makedirs(self.target_directory)
+                if self.target_file and not os.path.exists(os.path.dirname(self.target_file)):
+                    os.makedirs(os.path.dirname(self.target_file))
+
+                # we use target var and not controlled target_directory or target_file vars,
+                # that let the power to the end user by let him break everything.
                 if os.path.isdir(self.target):
                     dst_path = self.lookup_file_get_next_non_existing_filename(
                         os.path.join(self.target, os.path.basename(src_path))
@@ -423,7 +456,8 @@ class ImageGoNordCLI:
                 else:
                     resized_img = image
 
-                sys.stdout.write(f"{dst_path}\n")
+                sys.stdout.write(f"Convert {src_path} to {dst_path}\n")
+                sys.stdout.flush()
 
                 if dst_path:
                     if self.ai:
@@ -461,23 +495,32 @@ class ImageGoNordCLI:
 
         else:
             sys.stdout.write("Nothing to process\n")
-            sys.stdout.flush()
+        sys.stdout.flush()
 
     def post_processing(self):
         pass
 
     def run(self):
+        self.pre_processing()
+
         if self.pre_processing_palette():
+            sys.stdout.write("Trouble during color palette initialize\n")
             return 1
 
-        self.pre_processing()
+        # The user have the control
         self.print_summary()
+        if self.yes is False:
+            if not self.ask_to_continue("Do you want to continue ? (Y/n) "):
+                sys.stdout.write("All operations are stop by the user\n")
+                return 0
 
-        if not self.ask_to_continue("Do you want to continue ? (Y/n)"):
-            return 0
-        self.processing()
-        self.post_processing()
+        try:
+            self.processing()
+            self.post_processing()
+        except KeyboardInterrupt:
+            sys.stdout.write("All operations are interrupted by the user\n")
 
+        # If we are here that because all is finish, we can exit with
         return 0
 
 
@@ -493,6 +536,7 @@ def main():
         add=args.add,
         size=args.size,
         interactive=args.interactive,
+        yes=args.yes,
         source=args.source,
         target=args.target[0],
     )
