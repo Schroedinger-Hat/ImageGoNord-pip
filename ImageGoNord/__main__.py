@@ -124,6 +124,8 @@ class ImageGoNordCLI:
         self.source = kwargs.get("source", None)
 
         self.target_directory_to_create = None
+        self.target_directory = None
+        self.target_file = None
 
         self.__target = None
         self.target = kwargs.get("target", None)
@@ -195,14 +197,28 @@ class ImageGoNordCLI:
     @target.setter
     def target(self, value):
         if isinstance(value, str):
-
-            if os.path.exists(value):
-                value = self.lookup_file(value)
+            if (
+                len(self.source) > 1
+                or len(self.source) == 1 and value.endswith(os.sep)
+                or len(self.source) == 1 and value == "."
+                or len(self.source) == 1 and value == ".."
+            ):
+                if os.path.exists(value):
+                    value = os.path.realpath(value)
+                else:
+                    value = os.path.abspath(value)
+                self.target_directory = value
+                self.target_file = None
+            elif len(self.source) == 1 and not value.endswith(os.sep):
+                if os.path.exists(value):
+                    value = self.lookup_file(value)
+                else:
+                    value = os.path.abspath(value)
+                self.target_directory = None
+                self.target_file = value
             else:
-                value = os.path.abspath(value)
-
-            if len(self.source) > 1 and not os.path.exists(value):
-                self.target_directory_to_create = value
+                self.target_directory = None
+                self.target_file = None
 
         if self.target != value:
             self.__target = value
@@ -242,6 +258,20 @@ class ImageGoNordCLI:
                 count += 1
             return f"{os.path.join(basedir,f_name)}-{count}{f_ext}"
         return path
+
+    def lookup_file_destination(self, src_path):
+        """Convert a source path to a valid destination patch"""
+
+        if self.target_directory:
+            dst_path = self.lookup_file_get_next_non_existing_filename(
+                os.path.join(self.target_directory, os.path.basename(src_path))
+            )
+        elif self.target_file:
+            dst_path = self.lookup_file_get_next_non_existing_filename(self.target_file)
+        else:
+            dst_path = None
+
+        return dst_path
 
     def print_summary(self):
         sys.stdout.write(
@@ -288,15 +318,26 @@ class ImageGoNordCLI:
             sys.stdout.write(f" None\n")
 
         # target
-        if len(self.source) > 1:
-            sys.stdout.write(f"Target directory: {self.target}/\n")
-        else:
-            sys.stdout.write(f"Target file: {self.target}\n")
-        if self.target_directory_to_create:
-            sys.stdout.write(
-                f"Target directory to create: {self.target_directory_to_create}\n"
-            )
+        # if len(self.source) > 1:
+        #     sys.stdout.write(f"Target directory: {self.target}/\n")
+        # elif len(self.source) == 1:
+        #     if os.path.isdir(self.target):
+        #         sys.stdout.write(f"Target directory:")
+        #     elif os.path.isfile(self.target):
+        #         sys.stdout.write(f"Target file:")
+        #     elif not os.path.exists(self.target):
+        #         if self.lookup_file_supported_input_format(self.target):
+        #             sys.stdout.write(f"Target file:")
+        #         else:
+        #             sys.stdout.write(f"Target directory:")
+        #     sys.stdout.write(f" {self.target}\n")
 
+        if self.target_directory:
+            sys.stdout.write(f"Target directory: {self.target_directory}\n")
+        elif self.target_file:
+            sys.stdout.write(f"Target file: {self.target_file}\n")
+        for source in self.source:
+            sys.stdout.write(f"{source} -> {self.lookup_file_destination(source)}\n")
         # footer
         sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "-")}\n")
         sys.stdout.flush()
@@ -344,29 +385,27 @@ class ImageGoNordCLI:
         else:
             self.go_nord.disable_gaussian_blur()
 
-    def ask_to_continue(self, text: str, startswith: str = "N"):
+    @staticmethod
+    def ask_to_continue(text: str, startswith: str = "N"):
         if not input(f"{text}").upper().startswith(startswith):
             return True
         return False
 
     def processing(self):
-        # It have somthing to process
         if self.source:
             for src_path in self.source:
-                dst_path = None
-
 
                 # determine destination real path
+                if not os.path.exists(self.target):
+                    os.makedirs(self.target)
                 if os.path.isdir(self.target):
-                    if not os.path.exists(self.target):
-                        os.makedirs(self.target)
-
                     dst_path = self.lookup_file_get_next_non_existing_filename(
                         os.path.join(self.target, os.path.basename(src_path))
                     )
                 else:
-                    dst_path = self.lookup_file_get_next_non_existing_filename(self.target)
-
+                    dst_path = self.lookup_file_get_next_non_existing_filename(
+                        self.target
+                    )
 
                 # load the image inside the go_nord
                 image = self.go_nord.open_image(src_path)
@@ -378,17 +417,27 @@ class ImageGoNordCLI:
                 else:
                     resized_img = image
 
-                print(dst_path)
+                sys.stdout.write(f"{dst_path}\n")
+
                 if dst_path:
                     if self.ai:
-                        returned_image =self.go_nord.convert_image_by_model(resized_img)
+                        returned_image = self.go_nord.convert_image_by_model(
+                            resized_img
+                        )
                         self.go_nord.save_image_to_file(returned_image, dst_path)
                     else:
-                        self.go_nord.convert_image(
-                            resized_img, save_path=dst_path
-                        )
+                        self.go_nord.convert_image(resized_img, save_path=dst_path)
 
+                # E.g. Quantize
+                # --quantize
+                # image = go_nord.open_image("images/test.jpg")
+                # go_nord.reset_palette()
+                # go_nord.set_default_nord_palette()
+                # quantize_image = go_nord.quantize_image(image, save_path='images/test.quantize.jpg')
 
+                # To base64
+                # --base64
+                # go_nord.image_to_base64(quantize_image, 'jpeg')
 
                 # go_nord.convert_image(resized_img, save_path='images/test.resized.jpg')
                 # if self.base64:
@@ -417,55 +466,13 @@ class ImageGoNordCLI:
 
         self.pre_processing()
         self.print_summary()
+
         if not self.ask_to_continue("Do you want to continue ? (Y/n)"):
             return 0
-        print("We continue")
         self.processing()
         self.post_processing()
 
-        # post processing
-
-        # self.go_nord = GoNord()
-        # if self.pixel_by_pixel:
-        #
-        #
-        #     print(f"Convertion pixel-by-pixel {self.source_file.name} to {self.target_file}")
-        #     image = self.go_nord.open_image(self.source_file.name)
-        #     self.go_nord.convert_image(
-        #         image,
-        #         save_path=self.target_file
-        #     )
-        # --pixel-by-pixel
-        # E.g. Replace pixel by pixel
-        # go_nord = GoNord()
-        # image = go_nord.open_image("images/test.jpg")
-        # go_nord.convert_image(image, save_path='images/test.processed.jpg')
         return 0
-
-    # --avg
-    # E.g. Avg algorithm and less colors
-    # go_nord.enable_avg_algorithm()
-    # go_nord.reset_palette()
-    # go_nord.add_file_to_palette(NordPaletteFile.POLAR_NIGHT)
-    # go_nord.add_file_to_palette(NordPaletteFile.SNOW_STORM)
-
-    # --add
-    # You can add color also by their hex code
-    # go_nord.add_color_to_palette('#FF0000')
-    #
-    # image = go_nord.open_image("images/test.jpg")
-    # go_nord.convert_image(image, save_path='images/test.avg.jpg')
-
-    # E.g. Quantize
-    # --quantize
-    # image = go_nord.open_image("images/test.jpg")
-    # go_nord.reset_palette()
-    # go_nord.set_default_nord_palette()
-    # quantize_image = go_nord.quantize_image(image, save_path='images/test.quantize.jpg')
-
-    # To base64
-    # --base64
-    # go_nord.image_to_base64(quantize_image, 'jpeg')
 
 
 def main():
