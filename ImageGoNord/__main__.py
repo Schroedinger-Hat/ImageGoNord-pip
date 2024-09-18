@@ -26,6 +26,14 @@ parser_image_go_nord.add_argument(
 )
 
 parser_image_go_nord.add_argument(
+    "--ai",
+    dest="ai",
+    action="store_true",
+    default=False,
+    help="Process image by using a PyTorch model 'PaletteNet' for recoloring the image",
+)
+
+parser_image_go_nord.add_argument(
     "--blur",
     dest="blur",
     action="store_true",
@@ -39,8 +47,17 @@ parser_image_go_nord.add_argument(
     action="store_true",
     default=False,
     help="Enable quantization digital image processing. That reduces the number of distinct colors in "
-         "an image while maintaining its overall visual quality.",
+    "an image while maintaining its overall visual quality.",
+)
 
+parser_image_go_nord.add_argument(
+    "--resize",
+    dest="size",
+    nargs=2,
+    type=int,
+    metavar=("WEIGHT", "HEIGHT"),
+    default=None,
+    help="Enable base64 convertion",
 )
 
 parser_image_go_nord.add_argument(
@@ -92,10 +109,14 @@ class ImageGoNordCLI:
 
         self.blur = kwargs.get("blur", None)
         self.avg = kwargs.get("avg", None)
+        self.ai = kwargs.get("ai", None)
         self.quantize = kwargs.get("quantize", None)
         self.base64 = kwargs.get("base64", None)
         self.reset_palette = kwargs.get("reset_palette", None)
         self.add = kwargs.get("add", None)
+
+        self.__size = None
+        self.size = kwargs.get("size", None)
 
         self.interactive = kwargs.get("interactive", None)
 
@@ -107,6 +128,16 @@ class ImageGoNordCLI:
         self.__target = None
         self.target = kwargs.get("target", None)
 
+    @property
+    def size(self):
+        return self.__size
+
+    @size.setter
+    def size(self, value):
+        if value:
+            value = tuple(value)
+        if self.size != value:
+            self.__size = value
 
     @property
     def source(self):
@@ -170,8 +201,8 @@ class ImageGoNordCLI:
             else:
                 value = os.path.abspath(value)
 
-            if len(self.source) > 1 and  not os.path.exists(value):
-                    self.target_directory_to_create = value
+            if len(self.source) > 1 and not os.path.exists(value):
+                self.target_directory_to_create = value
 
         if self.target != value:
             self.__target = value
@@ -201,6 +232,17 @@ class ImageGoNordCLI:
             return True
         return False
 
+    @staticmethod
+    def lookup_file_get_next_non_existing_filename(path):
+        basedir = os.path.dirname(path)
+        f_name, f_ext = os.path.splitext(os.path.basename(path).split("/")[-1])
+        if os.path.exists(path):
+            count = 1
+            while os.path.exists(f"{os.path.join(basedir,f_name)}-{count}{f_ext}"):
+                count += 1
+            return f"{os.path.join(basedir,f_name)}-{count}{f_ext}"
+        return path
+
     def print_summary(self):
         sys.stdout.write(
             f"\n"
@@ -209,6 +251,7 @@ class ImageGoNordCLI:
             f"Blur: {self.blur}\n"
             f"Quantize: {self.quantize}\n"
             f"Base64: {self.base64}\n"
+            f"Resize: {self.size}\n"
             f"Reset Palette: {self.reset_palette}\n"
         )
 
@@ -227,7 +270,9 @@ class ImageGoNordCLI:
         if self.go_nord.get_palette_data():
             sys.stdout.write("\n")
             for hex16, rgb in self.go_nord.get_palette_data().items():
-                sys.stdout.write(f"\tHex: #{hex16}, RGB: ({rgb[0]},{rgb[1]},{rgb[2]})\n")
+                sys.stdout.write(
+                    f"\tHex: #{hex16}, RGB: ({rgb[0]},{rgb[1]},{rgb[2]})\n"
+                )
         else:
             sys.stdout.write("None\n")
 
@@ -243,14 +288,10 @@ class ImageGoNordCLI:
             sys.stdout.write(f" None\n")
 
         # target
-        if len(self.source)>1:
-            sys.stdout.write(
-                f"Target directory: {self.target}/\n"
-            )
+        if len(self.source) > 1:
+            sys.stdout.write(f"Target directory: {self.target}/\n")
         else:
-            sys.stdout.write(
-                f"Target file: {self.target}\n"
-            )
+            sys.stdout.write(f"Target file: {self.target}\n")
         if self.target_directory_to_create:
             sys.stdout.write(
                 f"Target directory to create: {self.target_directory_to_create}\n"
@@ -303,29 +344,69 @@ class ImageGoNordCLI:
         else:
             self.go_nord.disable_gaussian_blur()
 
-    def ask_to_continue(self, text, startswith):
-        if self.interactive and input(f"{text}").upper().startswith(f"{startswith}"):
-                return True
+    def ask_to_continue(self, text: str, startswith: str = "N"):
+        if not input(f"{text}").upper().startswith(startswith):
+            return True
         return False
 
     def processing(self):
+        # It have somthing to process
+        if self.source:
+            for src_path in self.source:
+                dst_path = None
 
-        pass
-        # process
-        # for image in self.source:
-        #     self.go_nord.open_image(image)
-        #     if self.base64:
-        #         self.go_nord.image_to_base64(
-        #             os.path.join(
-        #                 self.target,
-        #                 os.path.basename(image)
-        #             )
-        #         )
-        #     else:
-        #         self.go_nord.save_image_to_file(os.path.join(
-        #                 self.target,
-        #                 os.path.basename(image)
-        #             )
+
+                # determine destination real path
+                if os.path.isdir(self.target):
+                    if not os.path.exists(self.target):
+                        os.makedirs(self.target)
+
+                    dst_path = self.lookup_file_get_next_non_existing_filename(
+                        os.path.join(self.target, os.path.basename(src_path))
+                    )
+                else:
+                    dst_path = self.lookup_file_get_next_non_existing_filename(self.target)
+
+
+                # load the image inside the go_nord
+                image = self.go_nord.open_image(src_path)
+
+                # --resize
+                # deal with size and send back result into image var
+                if self.size:
+                    resized_img = self.go_nord.resize_image(image, size=self.size)
+                else:
+                    resized_img = image
+
+                print(dst_path)
+                if dst_path:
+                    if self.ai:
+                        returned_image =self.go_nord.convert_image_by_model(resized_img)
+                        self.go_nord.save_image_to_file(returned_image, dst_path)
+                    else:
+                        self.go_nord.convert_image(
+                            resized_img, save_path=dst_path
+                        )
+
+
+
+                # go_nord.convert_image(resized_img, save_path='images/test.resized.jpg')
+                # if self.base64:
+                #     self.go_nord.image_to_base64(
+                #         os.path.join(
+                #             self.target,
+                #             os.path.basename(image)
+                #         )
+                #     )
+                # else:
+                #     self.go_nord.save_image_to_file(os.path.join(
+                #             self.target,
+                #             os.path.basename(image)
+                #         )
+
+        else:
+            sys.stdout.write("Nothing to process\n")
+            sys.stdout.flush()
 
     def post_processing(self):
         pass
@@ -336,16 +417,13 @@ class ImageGoNordCLI:
 
         self.pre_processing()
         self.print_summary()
-        if not self.ask_to_continue("Do you want to continue ? (Y/n)", "Y"):
+        if not self.ask_to_continue("Do you want to continue ? (Y/n)"):
             return 0
         print("We continue")
         self.processing()
         self.post_processing()
 
-
-
         # post processing
-
 
         # self.go_nord = GoNord()
         # if self.pixel_by_pixel:
@@ -378,12 +456,6 @@ class ImageGoNordCLI:
     # image = go_nord.open_image("images/test.jpg")
     # go_nord.convert_image(image, save_path='images/test.avg.jpg')
 
-
-
-    # image = go_nord.open_image("images/test.jpg")
-    # resized_img = go_nord.resize_image(image)
-    # go_nord.convert_image(resized_img, save_path='images/test.resized.jpg')
-
     # E.g. Quantize
     # --quantize
     # image = go_nord.open_image("images/test.jpg")
@@ -399,12 +471,14 @@ class ImageGoNordCLI:
 def main():
     args = parser_image_go_nord.parse_args(sys.argv[1:])
     cli = ImageGoNordCLI(
+        ai=args.ai,
         blur=args.blur,
         avg=args.avg,
         quantize=args.quantize,
         base64=args.base64,
         reset_palette=args.reset_palette,
         add=args.add,
+        size=args.size,
         interactive=args.interactive,
         source=args.source,
         target=args.target[0],
