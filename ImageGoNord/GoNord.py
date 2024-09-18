@@ -469,8 +469,12 @@ class GoNord(object):
             os.path.exists(os.path.dirname(palette_net.__file__) + '/FE.state_dict.pt')
             and os.path.exists(os.path.dirname(palette_net.__file__) + '/RD.state_dict.pt')
         ):
-            FE.load_state_dict(torch.load(pkg_resources.open_binary(palette_net, "FE.state_dict.pt")))
-            RD.load_state_dict(torch.load(pkg_resources.open_binary(palette_net, "RD.state_dict.pt")))
+            FE.load_state_dict(torch.load(
+                pkg_resources.open_binary(palette_net, "FE.state_dict.pt"), weights_only=True)
+            )
+            RD.load_state_dict(torch.load(
+                pkg_resources.open_binary(palette_net, "RD.state_dict.pt"), weights_only=True)
+            )
         else:
             self.load_and_save_models()
 
