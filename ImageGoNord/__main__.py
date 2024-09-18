@@ -38,7 +38,7 @@ parser_image_go_nord.add_argument(
     dest="blur",
     action="store_true",
     default=False,
-    help="Enable",
+    help="Enable blur",
 )
 
 parser_image_go_nord.add_argument(
@@ -57,7 +57,7 @@ parser_image_go_nord.add_argument(
     type=int,
     metavar=("WEIGHT", "HEIGHT"),
     default=None,
-    help="Enable base64 convertion",
+    help="Resize the image during preprocessing phase",
 )
 
 parser_image_go_nord.add_argument(
@@ -81,8 +81,9 @@ parser_image_go_nord.add_argument(
     dest="add",
     action="append",
     default=[],
-    help="Add color also by hex code ex: '#FF0000' or name ex: 'POLAR_NIGHT', 'SNOW_STORM', it option "
-    "can be call more of one time",
+    help="Add color also by hex code ex: '#FF0000' or name ex: 'POLAR_NIGHT', 'SNOW_STORM'. "
+         "Note it can be a file path it contain you palette color, one hexadecimal base 16 peer line ex: #FFFFFF ."
+         "--add can be call more of one time",
 )
 
 parser_image_go_nord.add_argument(
@@ -93,13 +94,18 @@ parser_image_go_nord.add_argument(
     help="Write a prompt for confirmation about: start processing, overwrite a existing file or create a target directory",
 )
 
-parser_image_go_nord.add_argument("source", nargs=argparse.ONE_OR_MORE, default=None)
+parser_image_go_nord.add_argument(
+    "source",
+    nargs=argparse.ONE_OR_MORE,
+    default=None,
+    help="Pathname of a filename or directory, note it should have one source for process something"
+)
 
 parser_image_go_nord.add_argument(
     "target",
     nargs=1,
     default=None,
-    help="A pathname of an existing or nonexistent file, used for the output when a single file is copied.",
+    help="A pathname of an existing or nonexistent file or directory, used for the output when a single file is copied. Note if it finish by '/' or '\\' it will be consider like a directory",
 )
 
 
