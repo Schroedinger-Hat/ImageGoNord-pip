@@ -15,7 +15,7 @@ parser_image_go_nord = argparse.ArgumentParser(
     prog="image-go-nord",
     add_help=True,
     description="A tool to convert any RGB image or video to any theme or color palette input by the user. "
-                "By default the algorithm is pixel-by-pixel",
+                "By default the algorithm is pixel-by-pixel and will be disable by --avg or --ai usage.",
 )
 
 parser_image_go_nord.add_argument(
@@ -23,7 +23,8 @@ parser_image_go_nord.add_argument(
     dest="avg",
     action="store_true",
     default=False,
-    help="enable avg algorithm and less colors it not enable it will use pixel-by-pixel approach",
+    help="enable avg algorithm and less colors, if not enable the default is pixel-by-pixel approach, "
+         "note: that option is disable by --ai usage.",
 )
 
 parser_image_go_nord.add_argument(
@@ -31,7 +32,8 @@ parser_image_go_nord.add_argument(
     dest="ai",
     action="store_true",
     default=False,
-    help="process image by using a PyTorch model 'PaletteNet' for recoloring the image, note that disable pixel-by-pixel and avg algorithms",
+    help="process image by using a PyTorch model 'PaletteNet' for recoloring the image, "
+         "note: that disable pixel-by-pixel and avg algorithms.",
 )
 
 parser_image_go_nord.add_argument(
@@ -47,7 +49,7 @@ parser_image_go_nord.add_argument(
     dest="quantize",
     action="store_true",
     default=False,
-    help="enable quantization digital image processing, that reduces the number of distinct colors in "
+    help="enable quantization digital image processing, it reduces the number of distinct colors in "
     "an image while maintaining its overall visual quality.",
 )
 
@@ -56,7 +58,7 @@ parser_image_go_nord.add_argument(
     dest="base64",
     action="store_true",
     default=False,
-    help="enable base64 convertion during processing phase",
+    help="enable base64 convertion during processing phase.",
 )
 
 parser_image_go_nord.add_argument(
@@ -66,7 +68,7 @@ parser_image_go_nord.add_argument(
     type=int,
     metavar=("WEIGHT", "HEIGHT"),
     default=None,
-    help="resize the image during pre-processing phase",
+    help="resize the image during pre-processing phase.",
 )
 
 parser_image_go_nord.add_argument(
@@ -74,7 +76,7 @@ parser_image_go_nord.add_argument(
     dest="reset_palette",
     action="store_true",
     default=False,
-    help="reset the palette to zero color, you can add colors with multiple --add ADD calls",
+    help="reset the palette to zero color, you can add colors with multiple --add ADD calls.",
 )
 
 parser_image_go_nord.add_argument(
@@ -84,7 +86,7 @@ parser_image_go_nord.add_argument(
     default=[],
     help="add color by hex16 code '#FF0000', name: 'AURORA', 'FROST', 'POLAR_NIGHT', 'SNOW_STORM' "
          "or an existing file path it contain a color palette, one hex base 16 peer line ex: #FFFFFF . "
-         "note: --add ADD can be call more of one time, no trouble to mixe them",
+         "note: --add ADD can be call more of one time, no trouble to mixe them.",
 )
 
 parser_image_go_nord.add_argument(
@@ -102,7 +104,7 @@ parser_image_go_nord.add_argument(
     action="store_true",
     default=False,
     help="automatically by pass question by confirm with 'Y', that mean yes to continue and yes to "
-         "overwrite existing files, note: by default a it asking question",
+         "overwrite existing files, note: by default prompt questions.",
 )
 
 parser_image_go_nord.add_argument(
@@ -111,7 +113,7 @@ parser_image_go_nord.add_argument(
     default=None,
     metavar="SOURCE",
     help="a pathname of an existing file or directory, note: you can chain source "
-         "like SOURCE [SOURCE ...] in that case TARGET will be consider as directory"
+         "like SOURCE [SOURCE ...] in that case TARGET will be consider as directory."
 )
 
 parser_image_go_nord.add_argument(
@@ -122,7 +124,7 @@ parser_image_go_nord.add_argument(
     help="a pathname of an existing or nonexistent file or directory, note: if nonexistent TARGET "
          "finish by '/' or '\\' it will be consider as directory and will be create if necessary. "
          "(no panik if the directory all ready exist it will be use as expected, in that "
-         "case '/' or '\\' is optional)",
+         "case '/' or '\\' is optional).",
 )
 
 
@@ -271,6 +273,12 @@ class ImageGoNordCLI:
             return True
         return False
 
+    @staticmethod
+    def lookup_file_into(path):
+        basedir = os.path.dirname(path)
+        f_name, f_ext = os.path.splitext(os.path.basename(path).split("/")[-1])
+        return basedir, f_name, f_ext
+
     def lookup_file_get_next_non_existing_filename(self, path):
         basedir = os.path.dirname(path)
         f_name, f_ext = os.path.splitext(os.path.basename(path).split("/")[-1])
@@ -281,6 +289,7 @@ class ImageGoNordCLI:
                 while os.path.exists(f"{os.path.join(basedir, f_name)}-{count}{f_ext}"):
                     count += 1
                 return f"{os.path.join(basedir, f_name)}-{count}{f_ext}"
+            return path
         elif self.interactive is True and self.yes is True:
             return path
         elif self.interactive is False and self.yes is True:
@@ -294,6 +303,7 @@ class ImageGoNordCLI:
                     while os.path.exists(f"{os.path.join(basedir, f_name)}-{count}{f_ext}"):
                         count += 1
                     return f"{os.path.join(basedir, f_name)}-{count}{f_ext}"
+            return path
         else:
             return path
 
@@ -380,11 +390,9 @@ class ImageGoNordCLI:
         sys.stdout.flush()
 
     def pre_processing_palette(self):
-        # --reset-palette
         if self.reset_palette:
             self.go_nord.reset_palette()
 
-        # --add
         for color in self.add:
 
             # You can add color also by their hex code
@@ -410,13 +418,11 @@ class ImageGoNordCLI:
         return 0
 
     def pre_processing(self):
-        # --avg
         if self.avg:
             self.go_nord.enable_avg_algorithm()
         else:
             self.go_nord.disable_avg_algorithm()
 
-        # --blur
         if self.blur:
             self.go_nord.enable_gaussian_blur()
         else:
@@ -449,7 +455,6 @@ class ImageGoNordCLI:
                 # load the image inside the go_nord
                 image = self.go_nord.open_image(src_path)
 
-                # --resize
                 # deal with size and send back result into image var
                 if self.size:
                     resized_img = self.go_nord.resize_image(image, size=self.size)
@@ -461,37 +466,22 @@ class ImageGoNordCLI:
 
                 if dst_path:
                     if self.ai:
-                        returned_image = self.go_nord.convert_image_by_model(
-                            resized_img
-                        )
+                        returned_image = self.go_nord.convert_image_by_model(resized_img)
                         self.go_nord.save_image_to_file(returned_image, dst_path)
                     else:
-                        self.go_nord.convert_image(resized_img, save_path=dst_path)
 
-                # E.g. Quantize
-                # --quantize
-                # image = go_nord.open_image("images/test.jpg")
-                # go_nord.reset_palette()
-                # go_nord.set_default_nord_palette()
-                # quantize_image = go_nord.quantize_image(image, save_path='images/test.quantize.jpg')
-
-                # To base64
-                # --base64
-                # go_nord.image_to_base64(quantize_image, 'jpeg')
-
-                # go_nord.convert_image(resized_img, save_path='images/test.resized.jpg')
-                # if self.base64:
-                #     self.go_nord.image_to_base64(
-                #         os.path.join(
-                #             self.target,
-                #             os.path.basename(image)
-                #         )
-                #     )
-                # else:
-                #     self.go_nord.save_image_to_file(os.path.join(
-                #             self.target,
-                #             os.path.basename(image)
-                #         )
+                        if self.quantize and not self.base64:
+                            quantize_image = self.go_nord.quantize_image(resized_img, save_path=dst_path)
+                            self.go_nord.save_image_to_file(quantize_image, dst_path)
+                        # elif self.quantize and self.base64:
+                        #     basedir, f_name, f_ext = self.lookup_file_into(dst_path)
+                        #     quantize_image = self.go_nord.quantize_image(resized_img, save_path=dst_path)
+                        #     self.go_nord.image_to_base64(quantize_image, f_ext[1:])
+                        # elif not self.quantize and self.base64:
+                        #     basedir, f_name, f_ext = self.lookup_file_into(dst_path)
+                        #     self.go_nord.image_to_base64(resized_img, f_ext[1:])
+                        else:
+                            self.go_nord.convert_image(resized_img, save_path=dst_path)
 
         else:
             sys.stdout.write("Nothing to process\n")
@@ -526,6 +516,10 @@ class ImageGoNordCLI:
 
 def main():
     args = parser_image_go_nord.parse_args(sys.argv[1:])
+    if args.base64:
+        sys.stdout.write("base64 support is not supported\n")
+        return 1
+
     cli = ImageGoNordCLI(
         ai=args.ai,
         blur=args.blur,
