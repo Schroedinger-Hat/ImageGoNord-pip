@@ -87,7 +87,7 @@ parser_image_go_nord.add_argument(
 )
 
 parser_image_go_nord.add_argument(
-    "-i",
+    "-i", "--interactive",
     dest="interactive",
     action="store_true",
     default=False,
