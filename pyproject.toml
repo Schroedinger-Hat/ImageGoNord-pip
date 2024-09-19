@@ -54,10 +54,22 @@ Download='https://github.com/Schrodinger-Hat/ImageGoNord-pip/releases'
 
 [project.optional-dependencies]
 tests = [
-    'coverage',
-    'unittest',
-    'discover',
+    # Handles most of the testing work, including execution
+    # Docs: https://docs.pytest.org/en/stable/contents.html
+    "pytest",
+
+    # "Coverage" is how much of the code is actually run (it's "coverage")
+    # Generates coverage reports from test suite runs
+    "pytest-cov",
+    "tomli",
+
+    # pytest wrapper around the "mock" library
+    "pytest-mock",
+
+    # Without all that never exist
     "setuptools",
+
+    # Permit to download binaries from pip
     "wheel",
 ]
 AI=  [
@@ -85,3 +97,20 @@ packages = [
 [project.scripts]
 image-go-nord = "ImageGoNord.__main__:main"
 
+[tool.pytest.ini_options]
+norecursedirs = [
+    ".vscode",
+    ".github",
+    "__pycache__",
+    "docs",
+    "build",
+    "images",
+]
+testpaths = ["tests"]
+addopts = "--cov=ImageGoNord -v -ra -q"
+log_cli = true
+log_cli_level = "INFO"
+log_format = "%(asctime)s %(levelname)s %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+minversion = "6.0"
+filterwarnings = "ignore"
