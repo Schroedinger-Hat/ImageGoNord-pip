@@ -121,16 +121,117 @@ Getting it from PIP
 pip install image-go-nord
 ```
 
+or can be install with extra AI
+
+```
+pip install image-go-nord[AI]
+```
+
 Then you can use [some example](https://github.com/Schrodinger-Hat/ImageGoNord-pip/tree/master/docs/example) to getting started properly!
 
-### Contributing
+### CLI
+A CLI Entry point os provide by the installer `image-go-nord`, the file location depend of you setting. Normally it work out of the box the entry point will be into good PATH location.
+
+Actually No manual page is provide , you should use `image-go-nord --help`, to obtain options description.
+
+``` text
+usage: image-go-nord [-h] [--avg] [--ai] [--blur] [--quantize] [--base64] [--resize WEIGHT HEIGHT] [--reset-palette] [--add ADD] [-i] [-y] SOURCE [SOURCE ...] TARGET
+
+A tool to convert any RGB image or video to any theme or color palette input by the user. By default the algorithm is pixel-by-pixel and will be disable by --avg or --ai usage.
+
+positional arguments:
+  SOURCE                a pathname of an existing file or directory, note: you can chain source like SOURCE [SOURCE ...] in that case TARGET will be consider as directory.
+  TARGET                a pathname of an existing or nonexistent file or directory, note: if nonexistent TARGET finish by '/' or '\' it will be consider as directory and will be create if necessary. (no
+                        panik if the directory all ready exist it will be use as expected, in that case '/' or '\' is optional).
+
+options:
+  -h, --help            show this help message and exit
+  --avg                 enable avg algorithm and less colors, if not enable the default is pixel-by-pixel approach, note: that option is disable by --ai usage.
+  --ai                  process image by using a PyTorch model 'PaletteNet' for recoloring the image, note: that disable pixel-by-pixel and avg algorithms.
+  --blur                enable blur
+  --quantize            enable quantization digital image processing, it reduces the number of distinct colors in an image while maintaining its overall visual quality.
+  --base64              enable base64 convertion during processing phase.
+  --resize WEIGHT HEIGHT
+                        resize the image during pre-processing phase.
+  --reset-palette       reset the palette to zero color, you can add colors with multiple --add ADD calls.
+  --add ADD             add color by hex16 code '#FF0000', name: 'AURORA', 'FROST', 'POLAR_NIGHT', 'SNOW_STORM' or an existing file path it contain a color palette, one hex base 16 peer line ex: #FFFFFF
+                        . note: --add ADD can be call more of one time, no trouble to mixe them.
+  -i, --interactive     write a prompt for confirmation about: start processing, overwrite a existing file, by default no questions is asking. note: during prompt if response is 'N', a filename will be
+                        found automatically.
+  -y, --yes             automatically by pass question by confirm with 'Y', that mean yes to continue and yes to overwrite existing files, note: by default prompt questions.
+```
+
+##### Important to know
+
+You should care about `-y` and `--yes` option, by use it option you accept in advance to reply Yes to each future questions, 
+it can be apply to overwrite file. By default it option is disable.
+
+An other important argument is `-i` and `--interactive`, by default it have no interaction with the user, the commande 
+can be use inside a SHELL script, If use interactive `image-go-nord` CLI will asking for confirmation for overwrite a file, 
+or before the processing start.
+
+Alls SOURCE, TARGET or ADD have strong capability, look user friendly, read the --help and exemple section
+
+The tool have 3 modes **pixel-by-pixel**, **avg** and **ai**
+##### image-go-nor CLI Philosophy
+The power is let to the end user
+
+`image-go-nord` CLI have been code as a power tool, we can measure the strong of a tool by it capacity to break everything. 
+The tool respect what the user asking for and do not try to mitigate any user mistake.
+
+That is defencive code, all controls are doing at the entrance of datas, it have no control during processing.
+If arguments are not correct `image-go-nord` will inform the user by a short message, and have no capability to 
+start processing.
+
+#### CLI Examples
+##### Pixel by Pixel
+That the first command line to try, 
+``` shell
+image-go-nord image.jpg image-converted.jpg
+```
+Where `image.jpg` is the image you want convert (SOURCE) and `image-converted.jpg` the final result image (TARGET)
+
+You can use a directory as TARGET , `image-go-nord` will search automatically a filename by try to increase copy file number
+``` shell
+image-go-nord image.jpg ./
+```
+In that case TARGET will be define automatically to `image-1.jpg`
+
+``` shell
+image-go-nord image.jpg ./
+```
+##### AVG
+`--avg` option disable the pixel-by-pixel mode
+``` shell
+image-go-nord --avg image.jpg ./
+```
+
+##### AI
+`--ai` option disable both pixel-by-pixel and avg modes
+``` shell
+image-go-nord --ai image.jpg ./
+```
+##### Hack of the day
+``` shell
+image-go-nord --ai --resize 1920 1080 ./images/ ./unexistent_directory
+image-go-nord --avg --reset-palette --add ./palette.txt ./images/ ./
+image-go-nord --avg --blur --quantize ./images/ ./
+image-go-nord --avg --quantize --interactive ./images/ ./
+image-go-nord --avg --quantize --yes ./images/ ./
+image-go-nord --reset-palette --add "#000000" --add "#FFFFFF" --add "#777777" --interactive ./images/ ./
+image-go-nord image1.jpg image2.png ./image_directory1 ./image_directory2 ./destination/unexistant
+```
+
+## Contributing
 - Follow the contributor guidelines
 - Follow the code style / requirements
 - Format for commit messages
 
 # Authors
 
-[TheJoin95](https://github.com/TheJoin95) & [Wabri](https://github.com/Wabri)
+* [TheJoin95](https://github.com/TheJoin95)
+* [Wabri](https://github.com/Wabri)
+* [Hierosme](https://github.com/hierosme) - `image-go-nord` CLI
 
 ### License
 
