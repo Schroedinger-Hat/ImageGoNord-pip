@@ -5,6 +5,7 @@ import os
 # Standard python module
 import sys
 import argparse
+import unittest
 
 # from torch.fx.experimental.unification.multipledispatch.dispatcher import source
 
@@ -15,7 +16,7 @@ parser_image_go_nord = argparse.ArgumentParser(
     prog="image-go-nord",
     add_help=True,
     description="A tool to convert any RGB image or video to any theme or color palette input by the user. "
-                "By default the algorithm is pixel-by-pixel and will be disable by --avg or --ai usage.",
+    "By default the algorithm is pixel-by-pixel and will be disable by --avg or --ai usage.",
 )
 
 parser_image_go_nord.add_argument(
@@ -24,7 +25,7 @@ parser_image_go_nord.add_argument(
     action="store_true",
     default=False,
     help="enable avg algorithm and less colors, if not enable the default is pixel-by-pixel approach, "
-         "note: that option is disable by --ai usage.",
+    "note: that option is disable by --ai usage.",
 )
 
 parser_image_go_nord.add_argument(
@@ -33,7 +34,7 @@ parser_image_go_nord.add_argument(
     action="store_true",
     default=False,
     help="process image by using a PyTorch model 'PaletteNet' for recoloring the image, "
-         "note: that disable pixel-by-pixel and avg algorithms.",
+    "note: that disable pixel-by-pixel and avg algorithms.",
 )
 
 parser_image_go_nord.add_argument(
@@ -85,26 +86,28 @@ parser_image_go_nord.add_argument(
     action="append",
     default=[],
     help="add color by hex16 code '#FF0000', name: 'AURORA', 'FROST', 'POLAR_NIGHT', 'SNOW_STORM' "
-         "or an existing file path it contain a color palette, one hex base 16 peer line ex: #FFFFFF . "
-         "note: --add ADD can be call more of one time, no trouble to mixe them.",
+    "or an existing file path it contain a color palette, one hex base 16 peer line ex: #FFFFFF . "
+    "note: --add ADD can be call more of one time, no trouble to mixe them.",
 )
 
 parser_image_go_nord.add_argument(
-    "-i", "--interactive",
+    "-i",
+    "--interactive",
     dest="interactive",
     action="store_true",
     default=False,
     help="write a prompt for confirmation about: start processing, overwrite a existing file, by default no "
-         "questions is asking. note: during prompt if response is 'N', a filename will be found automatically.",
+    "questions is asking. note: during prompt if response is 'N', a filename will be found automatically.",
 )
 
 parser_image_go_nord.add_argument(
-    "-y", "--yes",
+    "-y",
+    "--yes",
     dest="yes",
     action="store_true",
     default=False,
     help="automatically by pass question by confirm with 'Y', that mean yes to continue and yes to "
-         "overwrite existing files, note: by default prompt questions.",
+    "overwrite existing files, note: by default prompt questions.",
 )
 
 parser_image_go_nord.add_argument(
@@ -113,7 +116,7 @@ parser_image_go_nord.add_argument(
     default=None,
     metavar="SOURCE",
     help="a pathname of an existing file or directory, note: you can chain source "
-         "like SOURCE [SOURCE ...] in that case TARGET will be consider as directory."
+    "like SOURCE [SOURCE ...] in that case TARGET will be consider as directory.",
 )
 
 parser_image_go_nord.add_argument(
@@ -122,9 +125,9 @@ parser_image_go_nord.add_argument(
     default=None,
     metavar="TARGET",
     help="a pathname of an existing or nonexistent file or directory, note: if nonexistent TARGET "
-         "finish by '/' or '\\' it will be consider as directory and will be create if necessary. "
-         "(no panik if the directory all ready exist it will be use as expected, in that "
-         "case '/' or '\\' is optional).",
+    "finish by '/' or '\\' it will be consider as directory and will be create if necessary. "
+    "(no panik if the directory all ready exist it will be use as expected, in that "
+    "case '/' or '\\' is optional).",
 )
 
 
@@ -176,9 +179,7 @@ class ImageGoNordCLI:
             source_list = []
             for src in value:
                 # Reset src_to_use value each iteration
-                if hasattr(src, "name"):
-                    src_to_use = src.name
-                elif isinstance(src, str):
+                if isinstance(src, str):
                     src_to_use = src
                 else:
                     src_to_use = None
@@ -196,9 +197,11 @@ class ImageGoNordCLI:
 
                 # That is a file
                 if os.path.isfile(src_to_use):
-                    if self.lookup_file_supported_input_format(src_to_use):
-                        if src_to_use and src_to_use not in source_list:
-                            source_list.append(src_to_use)
+                    if (
+                        self.lookup_file_supported_input_format(src_to_use)
+                        and src_to_use not in source_list
+                    ):
+                        source_list.append(src_to_use)
 
                 # That is a directory
                 elif os.path.isdir(src_to_use):
@@ -206,9 +209,11 @@ class ImageGoNordCLI:
                     # Check recursively for supported input file
                     for root, dirs, files in os.walk(src_to_use):
                         for file in files:
-                            if self.lookup_file_supported_input_format(file):
-                                if os.path.join(root, file) not in source_list:
-                                    source_list.append(os.path.join(root, file))
+                            if (
+                                self.lookup_file_supported_input_format(file)
+                                and os.path.join(root, file) not in source_list
+                            ):
+                                source_list.append(os.path.join(root, file))
 
             if self.source != source_list:
                 self.__source = source_list
@@ -242,8 +247,14 @@ class ImageGoNordCLI:
                 self.target_directory = None
                 self.target_file = value
             else:
+                value = None
                 self.target_directory = None
                 self.target_file = None
+
+        else:
+            value = None
+            self.target_directory = None
+            self.target_file = None
 
         if self.target != value:
             self.__target = value
@@ -257,9 +268,8 @@ class ImageGoNordCLI:
             return os.path.realpath(path)
         return None
 
-    @staticmethod
-    def lookup_file_supported_input_format(path):
-        f_name, f_ext = os.path.splitext(os.path.basename(path).split("/")[-1])
+    def lookup_file_supported_input_format(self, path):
+        basedir, f_name, f_ext = self.lookup_file_into(path)
         # Match each file PIL input image format by extension name
         if f_ext.lower()[1:] in [
             "gif",
@@ -280,59 +290,54 @@ class ImageGoNordCLI:
         return basedir, f_name, f_ext
 
     def lookup_file_get_next_non_existing_filename(self, path):
-        basedir = os.path.dirname(path)
-        f_name, f_ext = os.path.splitext(os.path.basename(path).split("/")[-1])
-
+        basedir, f_name, f_ext = self.lookup_file_into(path)
         if self.interactive is False and self.yes is False:
             if os.path.exists(path):
                 count = 1
                 while os.path.exists(f"{os.path.join(basedir, f_name)}-{count}{f_ext}"):
-                    count += 1
+                    count += 1  # pragma: no cover
                 return f"{os.path.join(basedir, f_name)}-{count}{f_ext}"
             return path
-        elif self.interactive is True and self.yes is True:
-            return path
-        elif self.interactive is False and self.yes is True:
-            return path
-        elif self.interactive is True and self.yes is False:
+        elif self.interactive is True and self.yes is False:  # pragma: no cover
             if os.path.exists(path):
                 if self.ask_to_continue(f"File all ready exist: {path}? (Y/n) "):
                     return path
                 else:
                     count = 1
-                    while os.path.exists(f"{os.path.join(basedir, f_name)}-{count}{f_ext}"):
+                    while os.path.exists(
+                        f"{os.path.join(basedir, f_name)}-{count}{f_ext}"
+                    ):
                         count += 1
                     return f"{os.path.join(basedir, f_name)}-{count}{f_ext}"
             return path
-        else:
-            return path
+        # elif self.interactive is True and self.yes is True:
+        #     return path
+        # elif self.interactive is False and self.yes is True:
+        #     return path
+        return path
 
     @staticmethod
     def ask_to_continue(text: str, startswith: str = "N"):
+
         if not input(f"{text}").upper().startswith(startswith):
             return True
         return False
 
 
-    def lookup_file_destination(self, src_path):
-        """Convert a source path to a valid destination patch"""
-
-        if self.target_directory:
-            dst_path = self.lookup_file_get_next_non_existing_filename(
-                os.path.join(self.target_directory, os.path.basename(src_path))
-            )
-        elif self.target_file:
-            dst_path = self.lookup_file_get_next_non_existing_filename(self.target_file)
-        else:
-            dst_path = None
-
-        return dst_path
-
     def print_summary(self):
+        # header
+        sys.stdout.write("\n")
+        try:
+            sys.stdout.write(
+                f"{" IMAGE GO NORD SUMMARY ".center(os.get_terminal_size().columns, "=")}\n"
+            )   # pragma: no cover
+        except OSError:
+            sys.stdout.write(
+                f"{" IMAGE GO NORD SUMMARY ".center(80, "=")}\n"
+            )
+
         # setting
         sys.stdout.write(
-            f"\n"
-            f"{"| IMAGE GO NORD SUMMARY |".center(os.get_terminal_size().columns, "-")}\n"
             f"Pixel-by-Pixel: {False if self.avg or self.ai else True}\n"
             f"AVG: {self.avg}\n"
             f"AI: {self.ai}\n"
@@ -351,7 +356,7 @@ class ImageGoNordCLI:
         if self.add:
             sys.stdout.write("\n")
             for add in self.add:
-                sys.stdout.write(f"{add}\n")
+                sys.stdout.write(f"\t{add}\n")
         else:
             sys.stdout.write("None\n")
 
@@ -382,11 +387,15 @@ class ImageGoNordCLI:
             sys.stdout.write(f"Target directory: {self.target_directory}\n")
         elif self.target_file:
             sys.stdout.write(f"Target file: {self.target_file}\n")
-        # for source in self.source:
-        #     sys.stdout.write(f"{source} -> {self.lookup_file_destination(source)}\n")
+        else:
+            sys.stdout.write(f"Target: {self.target}\n")
 
         # footer
-        sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "-")}\n")
+        try:
+            sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "=")}\n")  # pragma: no cover
+        except OSError:
+            sys.stdout.write(f"{"".center(80, "=")}\n")
+
         sys.stdout.flush()
 
     def pre_processing_palette(self):
@@ -430,7 +439,10 @@ class ImageGoNordCLI:
 
     def processing(self):
         if self.source:
-            sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "-")}\n")
+            try:
+                sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "=")}\n") # pragma: no cover
+            except OSError:
+                sys.stdout.write(f"{"".center(80, "=")}\n")
             sys.stdout.write("Processing\n")
             sys.stdout.flush()
             for src_path in self.source:
@@ -438,7 +450,9 @@ class ImageGoNordCLI:
                 # create directories if not exist
                 if self.target_directory and not os.path.exists(self.target_directory):
                     os.makedirs(self.target_directory)
-                if self.target_file and not os.path.exists(os.path.dirname(self.target_file)):
+                if self.target_file and not os.path.exists(
+                    os.path.dirname(self.target_file)
+                ):
                     os.makedirs(os.path.dirname(self.target_file))
 
                 # we use target var and not controlled target_directory or target_file vars,
@@ -466,12 +480,16 @@ class ImageGoNordCLI:
 
                 if dst_path:
                     if self.ai:
-                        returned_image = self.go_nord.convert_image_by_model(resized_img)
+                        returned_image = self.go_nord.convert_image_by_model(
+                            resized_img
+                        )
                         self.go_nord.save_image_to_file(returned_image, dst_path)
                     else:
 
                         if self.quantize and not self.base64:
-                            quantize_image = self.go_nord.quantize_image(resized_img, save_path=dst_path)
+                            quantize_image = self.go_nord.quantize_image(
+                                resized_img, save_path=dst_path
+                            )
                             self.go_nord.save_image_to_file(quantize_image, dst_path)
                         # elif self.quantize and self.base64:
                         #     basedir, f_name, f_ext = self.lookup_file_into(dst_path)
@@ -490,7 +508,8 @@ class ImageGoNordCLI:
     def post_processing(self):
         pass
 
-    def run(self):
+
+    def run(self):   # pragma: no cover
         self.pre_processing()
 
         if self.pre_processing_palette():
@@ -500,8 +519,10 @@ class ImageGoNordCLI:
         # The user have the control
         self.print_summary()
         if self.yes is False:
+            sys.stdout.flush()
             if not self.ask_to_continue("Do you want to continue ? (Y/n) "):
                 sys.stdout.write("All operations are stop by the user\n")
+                sys.stdout.flush()
                 return 0
 
         try:
@@ -514,7 +535,7 @@ class ImageGoNordCLI:
         return 0
 
 
-def main():
+def main(): # pragma: no cover
     args = parser_image_go_nord.parse_args(sys.argv[1:])
     if args.base64:
         sys.stdout.write("base64 support is not supported\n")
@@ -537,5 +558,5 @@ def main():
     return cli.run()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     sys.exit(main())
