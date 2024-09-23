@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-
-# Standard python module
 import sys
 import argparse
-import unittest
 
 # from torch.fx.experimental.unification.multipledispatch.dispatcher import source
 
@@ -207,7 +204,7 @@ class ImageGoNordCLI:
                 elif os.path.isdir(src_to_use):
 
                     # Check recursively for supported input file
-                    for root, dirs, files in os.walk(src_to_use):
+                    for root, _, files in os.walk(src_to_use):
                         for file in files:
                             if (
                                 self.lookup_file_supported_input_format(file)
@@ -269,7 +266,7 @@ class ImageGoNordCLI:
         return None
 
     def lookup_file_supported_input_format(self, path):
-        basedir, f_name, f_ext = self.lookup_file_into(path)
+        _, __, f_ext = self.lookup_file_into(path)
         # Match each file PIL input image format by extension name
         if f_ext.lower()[1:] in [
             "gif",
@@ -310,10 +307,6 @@ class ImageGoNordCLI:
                         count += 1
                     return f"{os.path.join(basedir, f_name)}-{count}{f_ext}"
             return path
-        # elif self.interactive is True and self.yes is True:
-        #     return path
-        # elif self.interactive is False and self.yes is True:
-        #     return path
         return path
 
     @staticmethod
@@ -329,11 +322,11 @@ class ImageGoNordCLI:
         sys.stdout.write("\n")
         try:
             sys.stdout.write(
-                f"{" IMAGE GO NORD SUMMARY ".center(os.get_terminal_size().columns, "=")}\n"
+                f"{' IMAGE GO NORD SUMMARY '.center(os.get_terminal_size().columns, '=')}\n"
             )   # pragma: no cover
         except OSError:
             sys.stdout.write(
-                f"{" IMAGE GO NORD SUMMARY ".center(80, "=")}\n"
+                f"{' IMAGE GO NORD SUMMARY '.center(80, '=')}\n"
             )
 
         # setting
@@ -392,9 +385,9 @@ class ImageGoNordCLI:
 
         # footer
         try:
-            sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "=")}\n")  # pragma: no cover
+            sys.stdout.write(f"{''.center(os.get_terminal_size().columns, '=')}\n")  # pragma: no cover
         except OSError:
-            sys.stdout.write(f"{"".center(80, "=")}\n")
+            sys.stdout.write(f"{''.center(80, '=')}\n")
 
         sys.stdout.flush()
 
@@ -440,9 +433,9 @@ class ImageGoNordCLI:
     def processing(self):
         if self.source:
             try:
-                sys.stdout.write(f"{"".center(os.get_terminal_size().columns, "=")}\n") # pragma: no cover
+                sys.stdout.write(f"{''.center(os.get_terminal_size().columns, '=')}\n") # pragma: no cover
             except OSError:
-                sys.stdout.write(f"{"".center(80, "=")}\n")
+                sys.stdout.write(f"{''.center(80, '=')}\n")
             sys.stdout.write("Processing\n")
             sys.stdout.flush()
             for src_path in self.source:
