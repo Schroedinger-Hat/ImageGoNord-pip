@@ -377,7 +377,7 @@ class ImageGoNordCLI:
 
         # target
         if self.target_directory:
-            sys.stdout.write(f"Target directory: {self.target_directory}\n")
+            sys.stdout.write(f"Target directory: {self.target_directory}{os.sep}\n")
         elif self.target_file:
             sys.stdout.write(f"Target file: {self.target_file}\n")
         else:
