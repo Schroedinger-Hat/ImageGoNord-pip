@@ -294,7 +294,7 @@ class TestImageGoNordCLI(unittest.TestCase):
                 f'\t{self.images_directory}/test-valley-ai.jpg\n'
                 f'\t{self.images_directory}/sh.png\n'
                 f'\t{self.images_directory}/valley.jpg\n'
-                f'Target directory: {os.getcwd()}\n'
+                f'Target directory: {os.getcwd()}{os.sep}\n'
                 f'================================================================================\n'
             )
             self.cli.print_summary()
