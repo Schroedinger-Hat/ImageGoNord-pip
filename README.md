@@ -139,6 +139,8 @@ usage: image-go-nord [-h] [--avg] [--ai] [--blur] [--quantize] [--base64] [--res
 
 A tool to convert any RGB image or video to any theme or color palette input by the user. By default the algorithm is pixel-by-pixel and will be disable by --avg or --ai usage.
 
+This client should be considered only for illustrative purposes of some features. The complete client is in a separate project here https://github.com/Schroedinger-Hat/ImageGoNord-cli.
+
 positional arguments:
   SOURCE                a pathname of an existing file or directory, note: you can chain source like SOURCE [SOURCE ...] in that case TARGET will be consider as directory.
   TARGET                a pathname of an existing or nonexistent file or directory, note: if nonexistent TARGET finish by '/' or '\' it will be consider as directory and will be create if necessary. (no
