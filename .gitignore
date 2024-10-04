@@ -153,3 +153,5 @@ images/*quantize*
 
 # pycharm
 .idea/
+/.project
+/.pydevproject
