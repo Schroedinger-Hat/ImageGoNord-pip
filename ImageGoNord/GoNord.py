@@ -6,7 +6,7 @@ from math import ceil
 
 import threading
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ExifTags
 
 import numpy as np
 import ffmpeg
@@ -167,6 +167,9 @@ class GoNord(object):
     TRANSPARENCY_TOLERANCE = 190
     MAX_THREADS = 10
 
+    EXIF_IGN = "ImageGoNord by Schroedinger Hat"
+    EXIF_IGN_AI = "ImageGoNord AI by Schroedinger Hat"
+
     PALETTE_NET_REPO_FOLDER = 'https://github.com/Schrodinger-Hat/ImageGoNord-pip/raw/master/ImageGoNord/models/PaletteNet/'
 
     AVAILABLE_PALETTE = []
@@ -254,6 +257,9 @@ class GoNord(object):
         opened_image = Image.open(path)
         if (type(opened_image.getpixel((0,0))) == int):
             opened_image = opened_image.convert('RGB')
+        
+        exif = opened_image.getexif()
+        exif[ExifTags.Base.ProcessingSoftware] = self.EXIF_IGN
 
         return opened_image
 
@@ -301,7 +307,8 @@ class GoNord(object):
             processed image
         """
         im_file = BytesIO()
-        image.save(im_file, format=extension)
+        exif = image.getexif()
+        image.save(im_file, format=extension, exif=exif)
         im_bytes = im_file.getvalue()
         return base64.b64encode(im_bytes)
 
@@ -394,6 +401,8 @@ class GoNord(object):
         palimage = Image.new('P', (1, 1))
         palimage.putpalette(data_colors)
         quantize_img = quantize_to_palette(image, palimage)
+        exif = quantize_img.getexif()
+        exif[ExifTags.Base.ProcessingSoftware] = self.EXIF_IGN
 
         if (save_path != ''):
             self.save_image_to_file(quantize_img, save_path)
@@ -544,10 +553,14 @@ class GoNord(object):
         original_image.close()
         pixels = self.load_pixel_image(image)
         is_rgba = (image.mode == 'RGBA')
+        exif = image.getexif()
+        exif[ExifTags.Base.ProcessingSoftware] = self.EXIF_IGN
 
         if use_model:
             if torch != None:
                 image = self.convert_image_by_model(image, use_model_cpu)
+                exif = image.getexif()
+                exif[ExifTags.Base.ProcessingSoftware] = self.EXIF_IGN_AI
             else:
                 print('Please install the dependencies required for the AI feature: pip install image-go-nord[AI]')
         else:
@@ -585,7 +598,8 @@ class GoNord(object):
         path : str
             the path and the filename where to save the image
         """
-        image.save(path)
+        exif = image.getexif()
+        image.save(path, exif=exif)
 
 
 
