@@ -6,7 +6,7 @@ README = (ROOT / "README.md").read_text()
 
 setup(
     name="image-go-nord",
-    version="1.1.0",
+    version="1.2.0",
     description="A tool to convert any RGB image or video to any theme or color palette input by the user",
     long_description=README,
     long_description_content_type="text/markdown",
