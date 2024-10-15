@@ -1,6 +1,6 @@
 # Documentation
 
-The documentation is under development (as the package) and it is [available also on the website](https://ign.schrodinger-hat.it/documentation/python).
+The documentation is under development (as the package) and it is [available also on the website](https://ign.schroedinger-hat.org/documentation/python).
 You can find some usage and some example under the example folder.
 
 # Class & Methods
@@ -94,7 +94,7 @@ Append a custom file to the available palette
 
 ### enable_gaussian_blur
 Enable blur filter
-  
+
 `enable_gaussian_blur(self)`
 
 -----
@@ -102,7 +102,7 @@ Enable blur filter
 
 ### disable_gaussian_blur
 disabled blur filter
-  
+
 `disable_gaussian_blur(self)`
 
 -----
@@ -110,7 +110,7 @@ disabled blur filter
 
 ### open_image
 Load an image using Pillow utility
-  
+
 `open_image(self, path)`
 
 **Parameters**:
@@ -123,7 +123,7 @@ Load an image using Pillow utility
 
 ### resize_image
 Resize an image using Pillow utility
-  
+
 `resize_image(self, image, w=0, h=0)`
 
 **Parameters**
@@ -153,7 +153,7 @@ Available extension: https://pillow.readthedocs.io/en/stable/handbook/image-file
 
 ### base64_to_image
 Convert a base64 string to a Pillow image
-  
+
 `base64_to_image(self, img_b64)`
 
 **Parameters**
@@ -165,7 +165,7 @@ img_b64: str - The base64 string representation of the image
 
 ### load_pixel_image
 Load the pixel map of a given Pillow image
-  
+
 `load_pixel_image(self, opened_image)`
 
 **Parameters**
@@ -178,7 +178,7 @@ Load the pixel map of a given Pillow image
 
 ### enable_avg_algorithm
 Enable avg algorithm
-  
+
 `enable_avg_algorithm(self)`
 
 -----
@@ -186,7 +186,7 @@ Enable avg algorithm
 
 ### disable_avg_algorithm
   Disabled avg algorithm
-  
+
 `disable_avg_algorithm(self)`
 
 -----
@@ -194,7 +194,7 @@ Enable avg algorithm
 
 ### set_avg_box_data
 Set the dimension of the AVG area box to use
-  
+
 `set_avg_box_data(self, w=-2, h=3)`
 
 **Parameters**
@@ -208,7 +208,7 @@ Set the dimension of the AVG area box to use
 
 ### quantize_image
 Quantize a Pillow image by applying the available palette
-  
+
 `quantize_image(self, image, save_path='')`
 
 **Parameters**
@@ -223,7 +223,7 @@ Quantize a Pillow image by applying the available palette
 
 ### convert_image
 Process a Pillow image by replacing pixel or by avg algorithm
-  
+
 `convert_image(self, image, palettedata, save_path='')`
 
 **Parameters**
@@ -238,7 +238,7 @@ Process a Pillow image by replacing pixel or by avg algorithm
 
 ### save_image_to_file
   Save a Pillow image to file
-  
+
 `save_image_to_file(self, image, path)`
 
 **Parameters**
