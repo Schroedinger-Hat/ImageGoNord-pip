@@ -1,3 +1,4 @@
+
 import base64
 import os
 from io import BytesIO
@@ -257,6 +258,7 @@ class GoNord(object):
         opened_image = Image.open(path)
         if (type(opened_image.getpixel((0,0))) == int):
             opened_image = opened_image.convert('RGB')
+
         exif = opened_image.getexif()
         exif[ExifTags.Base.ProcessingSoftware] = self.EXIF_IGN
 
@@ -450,6 +452,7 @@ class GoNord(object):
 
         with open(os.path.dirname(palette_net.__file__) + '/FE.state_dict.pt', "wb") as f:
             f.write(fe_model.content)
+
         with open(os.path.dirname(palette_net.__file__) + '/RD.state_dict.pt', "wb") as f:
             f.write(rd_model.content)
 
@@ -657,6 +660,7 @@ class GoNord(object):
         ndarray
             The numpy array of video frames
         """
+
         out, _ = (
             ffmpeg
             .input(video_path, ss=str(start_time), t=str(duration))
@@ -693,6 +697,7 @@ class GoNord(object):
         None
             Convert the numpy array to video and save to disk
         """
+
         # If images is a list, convert to ndarray
         if not isinstance(images, np.ndarray):
             images = np.asarray(images)
@@ -729,6 +734,7 @@ class GoNord(object):
         None
             Concatenate two videos and save to disk
         """
+
         main = ffmpeg.input(out)
         temp = ffmpeg.input(os.path.join(save_path, f'temp_{uid}.mp4'))
         (
