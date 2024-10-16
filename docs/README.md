@@ -1,6 +1,7 @@
+
 # Documentation
 
-The documentation is under development (as the package) and it is [available also on the website](https://ign.schrodinger-hat.it/documentation/python).
+The documentation is under development (as the package) and it is [available also on the website](https://ign.schroedinger-hat.org/documentation/python).
 You can find some usage and some example under the example folder.
 
 # Class & Methods

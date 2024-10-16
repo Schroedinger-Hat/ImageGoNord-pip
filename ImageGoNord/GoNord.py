@@ -1,3 +1,4 @@
+
 import base64
 import os
 from io import BytesIO
@@ -170,7 +171,7 @@ class GoNord(object):
     EXIF_IGN = "ImageGoNord by Schroedinger Hat"
     EXIF_IGN_AI = "ImageGoNord AI by Schroedinger Hat"
 
-    PALETTE_NET_REPO_FOLDER = 'https://github.com/Schrodinger-Hat/ImageGoNord-pip/raw/master/ImageGoNord/models/PaletteNet/'
+    PALETTE_NET_REPO_FOLDER = 'https://github.com/Schroedinger-Hat/ImageGoNord-pip/raw/master/ImageGoNord/models/PaletteNet/'
 
     AVAILABLE_PALETTE = []
     PALETTE_DATA = {}
