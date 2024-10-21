@@ -158,7 +158,7 @@ Thanks for the inspirations and attributions to GitHub's [Open Source Guides](ht
 [gh-readme-port-projects]: https://github.com/schroedinger-hat/ImageGoNord-pip#port-projects
 [git-docs-branching-workflows]: https://git-scm.com/book/en/v2/Git-Branching-Branching-Workflows
 [gitflow]: http://nvie.com/posts/a-successful-git-branching-model
-[ref-atom-contributing]: https://github.com/atom/atom/blob/master/CONTRIBUTING.md
+[ref-atom-contributing]: https://github.com/atom/atom/blob/main/CONTRIBUTING.md
 [ref-react-contributing]: https://facebook.github.io/react/contributing/how-to-contribute.html
 [ref-rubyonrails-contributing]: http://guides.rubyonrails.org/contributing_to_ruby_on_rails.html
 [semver]: http://semver.org

@@ -2,7 +2,7 @@
 
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/image-go-nord)
 [![PyPI](https://img.shields.io/pypi/v/image-go-nord)](https://pypi.org/project/image-go-nord/)
-[![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/schroedinger-Hat/ImageGoNord-pip/blob/master/LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/schroedinger-Hat/ImageGoNord-pip/blob/main/LICENSE)
 [![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/image-go-nord)
 
 A tool that can convert your rgb images to nordtheme, gruvbox, catpuccin and many more palettes.
@@ -17,7 +17,7 @@ It's including an API layer, in case you'd like to set it up also for your proje
 
 ### Documentation
 
-You can find the [documentation into this repository](https://github.com/schroedinger-Hat/ImageGoNord-pip/tree/master/docs) and also on the website.
+You can find the [documentation into this repository](https://github.com/schroedinger-Hat/ImageGoNord-pip/tree/main/docs) and also on the website.
 If you have any questions, please reach us at dev@schroedinger-hat.org
 
 ### Inspiration
@@ -37,24 +37,24 @@ You can convert any image into the nord palette (or others). Here are some examp
 
 **Original**
 
-[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test.jpg)
+[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test.jpg)
 
 
 **Processed with avg algorithm**
 
-[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-average.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-average.jpg)
+[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-average.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-average.jpg)
 
 
 -----
 
 **Original**
 
-[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)
+[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-profile.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-profile.jpg)
 
 
 **Processed with avg algorithm**
 
-[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-profile-average.jpg)
+[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-profile-average.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-profile-average.jpg)
 
 
 ### ImageGoNord with AI - PaletteNet
@@ -68,31 +68,31 @@ Here are some results that you could compare with other. On our point of view, A
 
 **Original**
 
-[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-profile.jpg)
+[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-profile.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-profile.jpg)
 
 **AI processed - Aurora palette from Nordtheme**
 
-[![Converted](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-profile-ai-aurora.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-profile-ai-aurora.jpg)
+[![Converted](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-profile-ai-aurora.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-profile-ai-aurora.jpg)
 
 -----
 
 **Original**
 
-[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/sh.png)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/sh.png)
+[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/sh.png)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/sh.png)
 
 **AI processed - Nordtheme**
 
-[![Converted](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-sh-ai.png)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-sh-ai.png)
+[![Converted](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-sh-ai.png)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-sh-ai.png)
 
 -----
 
 **Original**
 
-[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/valley.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/valley.jpg)
+[![Original](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/valley.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/valley.jpg)
 
 **AI processed - Nordtheme**
 
-[![Converted](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-valley-ai.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/master/images/test-valley-ai.jpg)
+[![Converted](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-valley-ai.jpg)](https://raw.githubusercontent.com/schroedinger-Hat/ImageGoNord-pip/main/images/test-valley-ai.jpg)
 
 -----
 
@@ -121,7 +121,7 @@ Getting it from PIP
 pip install image-go-nord
 ```
 
-Then you can use [some example](https://github.com/schroedinger-Hat/ImageGoNord-pip/tree/master/docs/example) to getting started properly!
+Then you can use [some example](https://github.com/schroedinger-Hat/ImageGoNord-pip/tree/main/docs/example) to getting started properly!
 
 ### Contributing
 - Follow the contributor guidelines
@@ -134,4 +134,4 @@ Then you can use [some example](https://github.com/schroedinger-Hat/ImageGoNord-
 
 ### License
 
-[AGPLv3 license](https://github.com/schroedinger-Hat/ImageGoNord-pip/blob/master/LICENSE)
+[AGPLv3 license](https://github.com/schroedinger-Hat/ImageGoNord-pip/blob/main/LICENSE)
