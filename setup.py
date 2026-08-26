@@ -23,16 +23,14 @@ def get_version(rel_path):
         raise RuntimeError("Unable to find version string.")
 
 
-if __name__ == "__main__":
-
-    if os.environ.get("APPLICATION_VERSION"):
-        version = os.environ["APPLICATION_VERSION"]
-    else:
-        version = get_version("ImageGoNord/__init__.py")
-    print(f"Setup version is: {version}")
-    setup(
-        version=version,
-    )
+if os.environ.get("APPLICATION_VERSION"):
+    version = os.environ["APPLICATION_VERSION"]
+else:
+    version = get_version("ImageGoNord/__init__.py")
+print(f"Setup version is: {version}")
+setup(
+    version=version,
+)
 
 setup(
     name="image-go-nord",
