@@ -1,4 +1,11 @@
 # gonord version
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
-from ImageGoNord.GoNord import *
+from .GoNord import GoNord, NordPaletteFile
+
+__all__ = [
+    "NordPaletteFile",
+    "GoNord",
+]
+# gonord version use for build process
+__version__ = "1.1.1"
