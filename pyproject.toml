@@ -8,7 +8,7 @@ dynamic = [
     "version",
 ]
 authors = [
-    {name = "Schrodinger Hat", email = "schrodinger.hat.show@gmail.com"},
+    {name = "Schroedinger Hat", email = "dev@schroedinger-hat.org"},
 ]
 description = "A tool to convert any RGB image or video to any theme or color palette input by the user"
 readme = "README.md"
